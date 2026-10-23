@@ -1,6 +1,7 @@
 # Chicken Simulator development
 
 - This is a mobile-first, browser-only TypeScript / Vite / Canvas 2D game. Keep runtime dependencies and asset downloads minimal; no backend, React or heavy engine.
+- Use `npm run format` for consistent formatting and `npm run format:check` to verify it.
 - Use strict TypeScript. Balance and attack definitions belong in `src/core/config.ts`.
 - Keep combat, AI, economy and saves independent of the DOM. Rendering belongs in `src/render`, browser integration in `src/platform`, and interface templates in `src/ui`.
 - Preserve the fixed simulation timestep, attack windup/active/recovery phases, per-attack hit guard, fighter separation and bounded stamina.

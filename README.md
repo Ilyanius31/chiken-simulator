@@ -25,15 +25,15 @@ If you rename the repository to `chicken-simulator`, the next workflow run autom
 
 ## Controls
 
-| Action | Touch | Keyboard |
-| --- | --- | --- |
-| Move | Left/right arrows under left thumb | A/D or arrow keys |
-| Peck | PECK | J |
-| Wing slap | WING SLAP | K |
-| Power kick | POWER KICK | L |
-| Block | Hold BLOCK | Hold Space |
-| Lay egg | LAY EGG | V |
-| Pause | Pause button | Escape |
+| Action     | Touch                              | Keyboard          |
+| ---------- | ---------------------------------- | ----------------- |
+| Move       | Left/right arrows under left thumb | A/D or arrow keys |
+| Peck       | PECK                               | J                 |
+| Wing slap  | WING SLAP                          | K                 |
+| Power kick | POWER KICK                         | L                 |
+| Block      | Hold BLOCK                         | Hold Space        |
+| Lay egg    | LAY EGG                            | V                 |
+| Pause      | Pause button                       | Escape            |
 
 Move close before attacking. Hold an attack to repeat when ready; alternate attacks for up to a 4× combo (10% extra damage per additional step). The kick has a visible windup and a long cooldown. Blocking reduces damage by 78%, drains stamina, and temporarily breaks when exhausted. Recover stamina by releasing attacks and block. Moving and attacking use independent pointers.
 
@@ -60,6 +60,8 @@ npm test
 npm run build
 npm run preview
 ```
+
+Use `npm run format` to format source files and `npm run format:check` to check style.
 
 `dist/` is the complete production site. To reproduce the current misspelled repository’s Pages build:
 
