@@ -1,139 +1,136 @@
-import {
-  ATTACKS,
-  BALANCE,
-  OPPONENTS,
-  UPGRADES,
-  type AttackKind,
-  type UpgradeKind,
-} from '../core/config';
-import type { Fighter } from '../core/combat';
+import { ATTACKS, UPGRADES, type AttackKind, type UpgradeKind } from '../core/config';
 import { playerStats, upgradeCost } from '../core/economy';
 import type { Progress } from '../core/save';
-import { arrowIcon, eggIcon, featherIcon } from './icons';
-export type Screen = 'menu' | 'fight' | 'results' | 'upgrades' | 'settings' | 'help';
-export interface Result {
-  win: boolean;
-  reward: number;
-  seconds: number;
-  hp: number;
-  combo: number;
-  enemyEggs: number;
-}
+import { objectives } from '../world/interactions';
+import { ZONES } from '../world/map';
+import type { WorldSimulation } from '../world/simulation';
+import { eggIcon, featherIcon, arrowIcon } from './icons';
+export type Overlay =
+  | 'none'
+  | 'menu'
+  | 'pause'
+  | 'shop'
+  | 'settings'
+  | 'help'
+  | 'map'
+  | 'dialogue'
+  | 'defeat'
+  | 'victory'
+  | 'reset';
 export class View {
-  root: HTMLElement;
   canvas: HTMLCanvasElement;
-  screen: Screen = 'menu';
-  private content: HTMLElement;
-  private overlay: HTMLElement;
-  constructor(root: HTMLElement, onAction: (action: string) => void) {
-    this.root = root;
-    root.innerHTML = `<header class="topbar"><button class="brand" data-action="menu" aria-label="Main menu"><span class="brand-mark">${featherIcon}</span><span>CHICKEN<span class="brand-light"> SIMULATOR</span></span></button><span class="edition">THE PECKING ORDER <span> / </span> v0.1</span><nav><span class="wallet">${eggIcon}<b id="wallet">0</b><span> eggs</span></span><button class="icon-button" data-action="help" aria-label="How to play">?</button><button class="icon-button" data-action="settings" aria-label="Settings">⚙</button></nav></header><main id="stage"><canvas id="arena" aria-label="Animated chicken arena"></canvas><div id="content"></div><div id="overlay"></div></main><div id="toast" role="status"></div><div class="rotate-hint"><span>↻</span><b>A little more wing room</b><p>Rotate your phone to landscape to enter the arena.</p></div>`;
-    this.canvas = root.querySelector('#arena')!;
-    this.content = root.querySelector('#content')!;
-    this.overlay = root.querySelector('#overlay')!;
-    root.addEventListener('click', (event) => {
-      const target = (event.target as HTMLElement).closest<HTMLElement>('[data-action]');
-      if (target && !(target instanceof HTMLButtonElement && target.disabled))
-        onAction(target.dataset.action!);
+  overlay: Overlay = 'menu';
+  private panel: HTMLElement;
+  constructor(
+    public root: HTMLElement,
+    onAction: (action: string) => void,
+  ) {
+    root.innerHTML = `<canvas id="world" aria-label="Top-down Roostlands world"></canvas><div class="vignette"></div><div id="hud"><div class="player-card"><div class="portrait">${featherIcon}</div><div class="vitals"><div class="player-name">SIR CLUCKS-A-LOT <span id="hp-label"></span></div><div class="bar hp"><i id="hp-fill"></i></div><div class="bar stamina"><i id="stamina-fill"></i></div></div><div class="egg-wallet">${eggIcon}<b id="eggs">0</b></div></div><div class="location"><span class="location-kicker">THE ROOSTLANDS</span><h2 id="zone-name">Chicken Village</h2><button id="objective" data-action="map" aria-label="Objectives and world map"></button></div><div class="map-corner"><button class="map-button" data-action="map" aria-label="Open world map"><canvas class="minimap" width="240" height="180"></canvas><span>MAP <kbd>M</kbd></span></button><button class="pause-button" data-action="pause" aria-label="Pause game">Ⅱ</button></div><div id="boss-bar" hidden><span>LORD CLUCKINGTON</span><div class="bar boss"><i></i></div></div></div><div id="controls"><div class="joystick-wrap"><div class="joystick" data-control="joystick" role="group" aria-label="Movement joystick"><span class="stick-guide">✥</span><span class="stick-knob"></span></div><small>MOVE <kbd>W A S D</kbd></small></div><div class="actions"><div class="utility-row"><button class="utility egg-ability" data-action="egg" aria-label="Lay egg">${eggIcon}<span id="egg-cooldown">LAY EGG</span><kbd>V</kbd></button><button class="utility interact" data-action="interact" aria-label="Interact"><span>✋</span><b>INTERACT</b><kbd>E</kbd></button></div><div class="attack-row"><button class="ability block" data-control="block" aria-label="Block"><span>◈</span><b>BLOCK</b><kbd>SPACE</kbd></button>${(['peck', 'wing', 'kick'] as AttackKind[]).map((kind, i) => `<button class="ability ${kind}" data-control="${kind}" aria-label="${ATTACKS[kind].name}"><span>${['➤', '≋', 'ϟ'][i]}</span><b>${['PECK', 'WING', 'KICK'][i]}</b><kbd>${['J', 'K', 'L'][i]}</kbd><i class="cooldown-cover"></i></button>`).join('')}</div></div><div id="interaction-prompt"></div></div><div id="overlay"></div><div id="toast" role="status"></div><div class="rotate-prompt"><span>↻</span><h2>A wider world awaits.</h2><p>Turn your phone sideways to explore the Roostlands.</p></div>`;
+    this.canvas = root.querySelector('#world')!;
+    this.panel = root.querySelector('#overlay')!;
+    root.addEventListener('click', (e) => {
+      const target = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-action]');
+      if (target && !target.disabled) onAction(target.dataset.action!);
     });
+    root.addEventListener('contextmenu', (e) => e.preventDefault());
   }
-  show(screen: Screen, p: Progress, result?: Result): void {
-    this.screen = screen;
-    this.root.dataset.screen = screen;
-    this.overlay.innerHTML = '';
-    const opponent = OPPONENTS[p.stage % 3];
-    if (screen === 'menu')
-      this.content.innerHTML = `<section class="hero"><div class="eyebrow"><span class="live-dot"></span> BIG DREAMS. SMALL WINGS.</div><h1>Rule the<br><em>roost.</em></h1><p>Step into the yard. Find your fighting spirit.<br>And yes, roosters lay eggs here.</p><div class="hero-actions"><button class="button primary" data-action="play">LET’S RUFFLE FEATHERS ${arrowIcon}</button><button class="button secondary" data-action="upgrades">${featherIcon} UPGRADES</button></div><button class="text-button" data-action="help"><span>ⓘ</span> First time in the yard? Learn the moves</button></section><div class="hero-caption"><span class="small-tag">MEET YOUR FIGHTER</span><b>Sir Clucks-a-Lot</b><span>100% feathers. 0% fear.</span></div><div class="menu-bottom"><div class="stat"><span>YOUR RECORD</span><b>${p.wins}<small> WINS</small><i> / </i>${p.losses}<small> LOSSES</small></b></div><div class="stat next-rival"><span>UP NEXT · ROUND ${p.stage + 1}</span><b>${opponent.name} ${arrowIcon}</b></div><button class="egg-card" data-action="egg"><span class="egg-card-icon">${eggIcon}</span><span><b>Make an egg. Make a living.</b><small id="menu-egg-label">One very questionable superpower.</small></span><span class="egg-pill" id="menu-egg-button">LAY EGG +1</span></button></div><span class="yard-label">BACKYARD ARENA <span>✦</span> EST. THIS MORNING</span>`;
-    if (screen === 'fight')
-      this.content.innerHTML = `<div class="fight-hud"><div class="fighter-status"><div class="fighter-label"><b>SIR CLUCKS-A-LOT</b><span id="player-hp-text"></span></div><div class="meter health"><i id="player-hp"></i></div><div class="meter stamina"><i id="player-stamina"></i></div><span class="stamina-label" id="stamina-text"></span></div><div class="round-info"><span>ROUND ${p.stage + 1}</span><b id="timer">00:00</b><button class="pause-button" data-action="pause" aria-label="Pause">Ⅱ</button></div><div class="fighter-status enemy-status"><div class="fighter-label"><b>${opponent.name.toUpperCase()}</b><span id="enemy-hp-text"></span></div><div class="meter enemy-health"><i id="enemy-hp"></i></div><span class="opponent-title">${opponent.title}</span></div></div><div class="fight-callout" id="fight-callout">READY? <em>RUFFLE!</em></div><div class="controls"><div class="movement"><button data-control="left" aria-label="Move left">←<small>A</small></button><button data-control="right" aria-label="Move right">→<small>D</small></button></div><button class="lay-button" data-action="egg">${eggIcon}<span id="egg-label">LAY EGG</span><small>V</small></button><div class="combat-buttons"><button data-control="block" class="block-control"><span>◈</span><b>BLOCK</b><small>SPACE</small></button>${(['peck', 'wing', 'kick'] as AttackKind[]).map((kind, i) => `<button data-control="${kind}" class="attack-control ${kind}"><span>${['➤', '≋', 'ϟ'][i]}</span><b>${['PECK', 'WING SLAP', 'POWER KICK'][i]}</b><small>${['J', 'K', 'L'][i]} · ${ATTACKS[kind].cost} SP</small><i class="cooldown-shade"></i></button>`).join('')}</div></div>`;
-    if (screen === 'upgrades') {
+  show(overlay: Overlay, p: Progress, detail = ''): void {
+    this.overlay = overlay;
+    this.root.dataset.overlay = overlay;
+    this.root.dataset.playing = String(overlay !== 'menu');
+    let html = '';
+    const close =
+      '<button class="close-button" data-action="resume" aria-label="Close panel">×</button>';
+    if (overlay === 'menu')
+      html = `<div class="menu-scene"><div class="game-logo">${featherIcon}<span>CHICKEN SIMULATOR<small>A VERY QUESTIONABLE ADVENTURE</small></span></div><div class="title-card"><div class="tag">EXPLORE THE ROOSTLANDS · v0.2</div><h1>Small wings.<br><em>Big world.</em></h1><p>Wander off the beaten path. Pick a fight.<br>Lay an egg. Become a backyard legend.</p><button class="big-play" data-action="play">${p.world.visited.length > 1 ? 'CONTINUE ADVENTURE' : 'ENTER THE ROOSTLANDS'} ${arrowIcon}</button><div class="menu-links"><button data-action="help">FIELD GUIDE</button><span>✦</span><button data-action="settings">SETTINGS</button></div><div class="save-note">${eggIcon} ${p.eggs} eggs <span>·</span> ${p.wins} rivals defeated <span>·</span> saved on this browser</div></div><div class="world-stamp"><span>01 — 04</span> A WHOLE LITTLE WORLD<br><small>Village · Fields · Forest · Arena</small></div></div>`;
+    if (overlay === 'pause')
+      html = `<section class="modal compact-modal">${close}<div class="tag">TAKE A BREATHER</div><h2>On the perch.</h2><p>The world can wait. Your progress is saved.</p><button class="button primary" data-action="resume">RESUME ADVENTURE ${arrowIcon}</button><div class="two-buttons"><button class="button" data-action="help">FIELD GUIDE</button><button class="button" data-action="settings">SETTINGS</button></div><button class="text-button" data-action="menu">SAVE & RETURN TO TITLE</button></section>`;
+    if (overlay === 'shop') {
       const stats = playerStats(p);
-      this.content.innerHTML = `<section class="panel shop"><div class="panel-heading"><div><div class="eyebrow">A BETTER BIRD, ONE EGG AT A TIME</div><h2>The hen house<span>.</span></h2><p>A little investment. A lot of pecking potential.</p></div><button class="button secondary compact" data-action="menu">← BACK</button></div><div class="upgrade-grid">${(
+      html = `<section class="modal shop-modal">${close}<div class="panel-heading"><div><div class="tag">CHICKEN VILLAGE · MARKETPLACE</div><h2>The Feather Forge</h2><p>Invest in yourself. Preferably with eggs.</p></div><span class="shop-wallet">${eggIcon}<b>${p.eggs}</b></span></div><div class="upgrade-grid">${(
         Object.keys(UPGRADES) as UpgradeKind[]
       )
         .map((key) => {
-          const info = UPGRADES[key],
-            level = p.upgrades[key],
-            maxed = level >= BALANCE.maxLevel,
+          const u = UPGRADES[key],
+            lv = p.upgrades[key],
             cost = upgradeCost(p, key);
-          return `<article class="upgrade-card"><span class="upgrade-icon ${key}">${info.icon}</span><span class="level">LEVEL ${level} / ${BALANCE.maxLevel}</span><h3>${info.title}</h3><p>${info.description}</p><div class="level-dots">${Array.from({ length: 5 }, (_, i) => `<i class="${i < level ? 'filled' : ''}"></i>`).join('')}</div><button class="button ${p.eggs >= cost && !maxed ? 'primary' : 'secondary'} buy" data-action="buy:${key}" ${maxed || p.eggs < cost ? 'disabled' : ''}>${maxed ? 'MAX LEVEL' : `${eggIcon} ${cost} EGGS <span>UPGRADE +</span>`}</button></article>`;
+          return `<article class="upgrade-card"><div class="upgrade-top"><span class="upgrade-symbol ${key}">${u.icon}</span><small>LEVEL ${lv} / 5</small></div><h3>${u.title}</h3><p>${u.description}</p><div class="level-dots">${[0, 1, 2, 3, 4].map((i) => `<i class="${i < lv ? 'filled' : ''}"></i>`).join('')}</div><button class="button buy" data-action="buy:${key}" ${lv >= 5 || p.eggs < cost ? 'disabled' : ''}>${lv >= 5 ? 'MAXED OUT' : `${eggIcon} ${cost} EGGS <span>UPGRADE</span>`}</button></article>`;
         })
         .join(
           '',
-        )}</div><div class="current-stats"><span>YOUR BIRD, CURRENTLY</span><b>${stats.maxHp} HP</b><b>${Math.round(stats.power * 100)}% POWER</b><b>${stats.maxStamina} STAMINA</b><b>${stats.eggCooldown}s / EGG</b></div></section>`;
+        )}</div><div class="stats-strip"><b>${stats.maxHp} HP</b><b>${Math.round(stats.power * 100)}% POWER</b><b>${stats.maxStamina} STAMINA</b><b>${stats.eggCooldown}s / EGG</b></div></section>`;
     }
-    if (screen === 'results' && result)
-      this.content.innerHTML = `<section class="result-panel"><div class="eyebrow">${result.win ? 'ANOTHER DAY. ANOTHER FEATHER IN YOUR CAP.' : 'EVEN LEGENDS HAVE BAD FEATHER DAYS.'}</div><h2>${result.win ? 'Top of the <em>flock.</em>' : 'Well…<br><em>cluck.</em>'}</h2><p>${result.win ? 'The yard has a new champion. That’s you.' : 'Dust off those wings. Your upgrades are safe.'}</p><div class="result-stats"><span><small>REWARD</small><b>${eggIcon} +${result.reward}</b></span><span><small>FIGHT TIME</small><b>${result.seconds.toFixed(1)}s</b></span><span><small>BEST COMBO</small><b>${result.combo}×</b></span><span><small>HP LEFT</small><b>${Math.round(result.hp * 100)}%</b></span></div>${result.win ? `<p class="reward-detail">3 victory · ${result.seconds < 45 ? '1' : '0'} speed · ${result.hp >= 0.65 ? '1' : '0'} healthy · ${result.enemyEggs} rival eggs</p>` : ''}<div class="hero-actions"><button class="button primary" data-action="play">${result.win ? 'NEXT FIGHT' : 'TRY AGAIN'} ${arrowIcon}</button><button class="button secondary" data-action="upgrades">UPGRADES</button><button class="text-button" data-action="menu">Main menu</button></div></section>`;
-    if (screen === 'settings')
-      this.content.innerHTML = `<section class="panel small-panel"><div class="eyebrow">MAKE YOURSELF AT HOME</div><h2>Yard rules<span>.</span></h2><div class="settings-row"><div><h3>Sound effects</h3><p>A little cluck goes a long way.</p></div><button class="toggle ${p.settings.sound ? 'on' : ''}" data-action="sound" role="switch" aria-checked="${p.settings.sound}" aria-label="Sound effects"><i></i></button></div><div class="settings-row"><div><h3>A fresh start</h3><p>Reset eggs, upgrades and your record.</p></div><button class="button danger compact" data-action="reset">RESET SAVE</button></div><button class="button primary" data-action="menu">BACK TO THE YARD ${arrowIcon}</button><p class="privacy-note">Saved on this browser. No account. No tracking.</p></section>`;
-    if (screen === 'help')
-      this.content.innerHTML = `<section class="panel help-panel"><div class="eyebrow">THE ART OF RUFFLING FEATHERS</div><h2>Know your moves<span>.</span></h2><div class="help-grid"><article><b>← → · MOVE</b><p>Left thumb moves. Right thumb fights.<br>Keyboard: A / D or arrow keys.</p></article><article><b>J · PECK</b><p>Quick and light. 8 base damage.<br>10 stamina · 0.46s cooldown.</p></article><article><b>K · WING SLAP</b><p>15 damage and a little personal space.<br>19 stamina · 0.95s cooldown.</p></article><article><b>L · POWER KICK</b><p>29 damage. Watch the windup!<br>34 stamina · 2.15s cooldown.</p></article><article><b>SPACE · HOLD BLOCK</b><p>Absorbs 78% of damage. Drains stamina.<br>Release to recover. Alternate hits for combos.</p></article><article><b>V · LAY EGG</b><p>One egg every 30 seconds. You’re vulnerable<br>while laying. Win fights to earn more.</p></article></div><p class="help-tip">Get close to land a hit. Back away to recover stamina. Escape pauses.</p><button class="button primary" data-action="menu">GOT IT. LET’S CLUCK. ${arrowIcon}</button></section>`;
-    this.wallet(p);
+    if (overlay === 'settings')
+      html = `<section class="modal compact-modal">${close}<div class="tag">A LITTLE HOUSEKEEPING</div><h2>Yard rules.</h2><div class="settings-row"><div><b>Sound effects</b><p>Original clucks, thumps and little victories.</p></div><button class="toggle ${p.settings.sound ? 'on' : ''}" data-action="sound" role="switch" aria-label="Sound effects" aria-checked="${p.settings.sound}"><i></i></button></div><div class="settings-row"><div><b>A fresh nest</b><p>Reset all progress, including the old save.</p></div><button class="button danger" data-action="reset">RESET</button></div><button class="button primary" data-action="resume">DONE</button></section>`;
+    if (overlay === 'reset')
+      html = `<section class="modal compact-modal"><h2>Start from scratch?</h2><p>This erases your eggs, upgrades, exploration and legacy v0.1 save on this browser.</p><button class="button danger" data-action="confirm-reset">YES, RESET EVERYTHING</button><button class="button primary" data-action="settings">KEEP MY PROGRESS</button></section>`;
+    if (overlay === 'help')
+      html = `<section class="modal guide-modal">${close}<div class="tag">THE ART OF RUFFLING FEATHERS</div><h2>Your field guide.</h2><div class="guide-grid"><article><b>01 / WANDER</b><p>Left joystick: move in any direction.<br>Keyboard: WASD or arrow keys. Follow the paths and the golden minimap marker.</p></article><article><b>02 / RUFFLE</b><p>J: fast peck. K: wide wing slap.<br>L: heavy kick. Face your target. Alternate hits for combos. Red arcs warn of enemy attacks.</p></article><article><b>03 / SURVIVE</b><p>Hold Block / Space to absorb damage.<br>Release attacks to recover stamina. Keep moving to dodge. The village restores your health.</p></article><article><b>04 / INTERACT</b><p>Approach glowing objects. Tap Interact / E.<br>Collect nests, open crates, talk to Pip, practice on the dummy and visit the striped shop.</p></article><article><b>05 / MAKE A LIVING</b><p>Lay Egg / V: one egg every 30 seconds.<br>You’re vulnerable while laying. Spend eggs at the village shop; nests refill after a minute.</p></article><article><b>06 / BECOME A LEGEND</b><p>Explore the southern forest, then go east.<br>Ring the arena bell to challenge the Champion. Defeat never takes away your eggs.</p></article></div><button class="button primary" data-action="resume">GOT IT. LET’S CLUCK.</button></section>`;
+    if (overlay === 'map')
+      html = `<section class="modal atlas-modal">${close}<div class="tag">A SMALL WORLD. A BIG PECKING ORDER.</div><h2>The Roostlands</h2><div class="atlas-layout"><div class="atlas-map"><canvas class="minimap" width="640" height="480"></canvas><span class="zone-label village">CHICKEN VILLAGE</span><span class="zone-label fields">SUNNY FIELDS</span><span class="zone-label forest">DARK FOREST</span><span class="zone-label arena">CHAMPION’S ARENA</span></div><div class="objectives-list"><h3>YOUR ADVENTURE</h3>${objectives(
+        p,
+      )
+        .map(
+          (o) =>
+            `<p class="${o.done ? 'done' : ''}"><span>${o.done ? '✓' : '○'}</span>${o.label}</p>`,
+        )
+        .join(
+          '',
+        )}<small>White dot: you · Gold dot: next objective<br>${p.world.visited.length} / 4 zones explored</small></div></div></section>`;
+    if (overlay === 'dialogue') {
+      const [name, text] = detail.split('|');
+      html = `<section class="modal dialogue-modal">${close}<div class="dialogue-avatar">${featherIcon}</div><div><div class="tag">A WORD FROM THE YARD</div><h2>${name}</h2><p>${text}</p><button class="button primary" data-action="resume">ON MY WAY ${arrowIcon}</button></div></section>`;
+    }
+    if (overlay === 'defeat' || overlay === 'victory')
+      html = `<section class="modal compact-modal result-modal"><div class="result-emblem">${overlay === 'victory' ? '♛' : '✦'}</div><div class="tag">${overlay === 'victory' ? 'GOLDEN COMB EARNED' : 'EVEN LEGENDS HAVE BAD FEATHER DAYS'}</div><h2>${overlay === 'victory' ? 'Top of the flock.' : 'Well… cluck.'}</h2><p>${detail}</p><div class="result-eggs">${eggIcon} ${p.eggs} eggs safely in your nest</div><button class="button primary" data-action="${overlay === 'defeat' ? 'respawn' : 'resume'}">${overlay === 'defeat' ? 'WAKE UP IN THE VILLAGE' : 'KEEP EXPLORING'} ${arrowIcon}</button></section>`;
+    this.panel.innerHTML = html;
+    this.panel
+      .querySelector<HTMLButtonElement>('.primary,.big-play')
+      ?.focus({ preventScroll: true });
   }
-  wallet(p: Progress): void {
-    this.root.querySelector('#wallet')!.textContent = String(p.eggs);
-  }
-  hud(player: Fighter, enemy: Fighter, seconds: number, p: Progress): void {
+  hud(world: WorldSimulation): void {
+    const p = world.player,
+      progress = world.progress;
+    this.canvas.dataset.player = JSON.stringify({
+      x: p.x,
+      y: p.y,
+      hp: p.hp,
+      stamina: p.stamina,
+      angle: p.angle,
+    });
+    this.canvas.dataset.enemies = JSON.stringify(
+      world.enemies
+        .filter((e) => e.active)
+        .map((e) => ({ id: e.id, x: e.x, y: e.y, hp: e.hp, kind: e.kind })),
+    );
+    this.canvas.dataset.zone = world.zone;
     const text = (id: string, value: string) => {
-      const node = this.root.querySelector(`#${id}`);
-      if (node) node.textContent = value;
+      const el = this.root.querySelector('#' + id);
+      if (el && el.textContent !== value) el.textContent = value;
     };
-    const bar = (id: string, ratio: number) => {
-      const node = this.root.querySelector<HTMLElement>(`#${id}`);
-      if (node) node.style.width = `${Math.max(0, ratio * 100)}%`;
-    };
-    bar('player-hp', player.hp / player.maxHp);
-    bar('enemy-hp', enemy.hp / enemy.maxHp);
-    bar('player-stamina', player.stamina / player.maxStamina);
-    text('player-hp-text', `${Math.ceil(player.hp)} / ${player.maxHp}`);
-    text('enemy-hp-text', `${Math.ceil(enemy.hp)} / ${Math.round(enemy.maxHp)}`);
-    text(
-      'stamina-text',
-      `${Math.floor(player.stamina)} SP${player.blockLock > 0 ? ' · GUARD RECOVERING' : ''}`,
-    );
-    text(
-      'timer',
-      `${Math.floor(seconds / 60)
-        .toString()
-        .padStart(2, '0')}:${Math.floor(seconds % 60)
-        .toString()
-        .padStart(2, '0')}`,
-    );
-    const callout = this.root.querySelector<HTMLElement>('#fight-callout');
-    if (callout) callout.style.opacity = seconds < 1.5 ? '1' : '0';
+    text('hp-label', `${Math.ceil(p.hp)} / ${p.maxHp}`);
+    text('eggs', String(progress.eggs));
+    text('zone-name', ZONES.find((z) => z.id === world.zone)!.name);
+    this.root.querySelector<HTMLElement>('#hp-fill')!.style.width = `${(p.hp / p.maxHp) * 100}%`;
+    this.root.querySelector<HTMLElement>('#stamina-fill')!.style.width =
+      `${(p.stamina / p.maxStamina) * 100}%`;
+    const objective = objectives(progress).find((o) => !o.done);
+    text('objective', objective ? `◇ ${objective.label}` : '♛ Golden Comb earned · Keep exploring');
+    const eggLeft = Math.max(0, Math.ceil((progress.eggReadyAt - Date.now()) / 1000));
+    text('egg-cooldown', eggLeft ? `${eggLeft}s` : 'LAY EGG');
+    this.root.querySelector('.egg-ability')!.classList.toggle('waiting', eggLeft > 0);
     for (const kind of Object.keys(ATTACKS) as AttackKind[]) {
-      const button = this.root.querySelector<HTMLElement>(`[data-control="${kind}"]`);
-      if (button) {
-        button.style.setProperty(
-          '--cooldown',
-          `${(player.cooldowns[kind] / ATTACKS[kind].cooldown) * 100}%`,
-        );
-        button.classList.toggle('tired', player.stamina < ATTACKS[kind].cost);
-      }
+      const b = this.root.querySelector<HTMLElement>(`[data-control="${kind}"]`)!;
+      b.style.setProperty('--cooldown', `${(p.cooldowns[kind] / ATTACKS[kind].cooldown) * 100}%`);
+      b.classList.toggle('tired', p.stamina < ATTACKS[kind].cost);
     }
-    this.eggTimer(p);
-    this.wallet(p);
-  }
-  eggTimer(p: Progress): void {
-    const left = Math.max(0, Math.ceil((p.eggReadyAt - Date.now()) / 1000));
-    const label = this.root.querySelector('#egg-label');
-    if (label) label.textContent = left ? `${left}s` : 'LAY EGG';
-    const menu = this.root.querySelector('#menu-egg-button');
-    if (menu) menu.textContent = left ? `READY IN ${left}s` : 'LAY EGG +1';
-    this.root
-      .querySelectorAll('[data-action="egg"]')
-      .forEach((node) => node.classList.toggle('egg-wait', left > 0));
-  }
-  pause(confirmLeave = false): void {
-    this.overlay.innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="pause-title"><div class="eyebrow">TAKE A BREATHER</div><h2 id="pause-title">${confirmLeave ? 'Leave the fight?' : 'On the perch.'}</h2><p>${confirmLeave ? 'This fight will count as a loss. Earned eggs and upgrades stay safe.' : 'Your feathers aren’t going anywhere.'}</p><button class="button primary" data-action="resume">RESUME FIGHT ${arrowIcon}</button><button class="button secondary" data-action="${confirmLeave ? 'forfeit' : 'leave'}">${confirmLeave ? 'LEAVE & KEEP PROGRESS' : 'BACK TO MENU'}</button></section></div>`;
-    this.overlay.querySelector<HTMLButtonElement>('button')?.focus();
-  }
-  resetConfirm(): void {
-    this.overlay.innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>Start from scratch?</h2><p>This removes all eggs, upgrades and your record from this browser.</p><button class="button danger" data-action="confirm-reset">YES, RESET EVERYTHING</button><button class="button secondary" data-action="cancel-reset">KEEP MY FLOCK</button></section></div>`;
-    this.overlay.querySelector<HTMLButtonElement>('[data-action="cancel-reset"]')?.focus();
-  }
-  closeOverlay(): void {
-    this.overlay.innerHTML = '';
+    const nearby = world.nearest(Date.now());
+    text('interaction-prompt', nearby ? `${nearby.label}  ·  E / INTERACT` : '');
+    this.root.querySelector<HTMLButtonElement>('[data-action="interact"]')!.disabled = !nearby;
+    const boss = world.enemies.find((e) => e.kind === 'champion')!,
+      bar = this.root.querySelector<HTMLElement>('#boss-bar')!;
+    bar.hidden = !world.bossActive;
+    bar.querySelector<HTMLElement>('i')!.style.width = `${(boss.hp / boss.maxHp) * 100}%`;
   }
   toast(message: string): void {
     const node = this.root.querySelector<HTMLElement>('#toast')!;

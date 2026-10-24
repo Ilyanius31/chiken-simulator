@@ -1,337 +1,225 @@
-import { BALANCE, type AttackKind, type UpgradeKind } from './config';
-import {
-  createCombat,
-  endAttack,
-  makeFighter,
-  outcome,
-  resolveHit,
-  separate,
-  setBlock,
-  startAttack,
-  updateFighter,
-  type Fighter,
-} from './combat';
-import { RoosterAI } from './ai';
-import { claimEgg, finishFight, purchase } from './economy';
-import { SaveStore, type Progress } from './save';
+import { SaveStore, type Progress, type StorageLike } from './save';
+import type { AttackKind, UpgradeKind } from './config';
+import { WorldSimulation } from '../world/simulation';
+import { WorldRenderer } from '../render/world-renderer';
+import { View, type Overlay } from '../ui/view';
 import { Input } from '../platform/input';
 import { AudioManager } from '../platform/audio';
-import { ArenaRenderer } from '../render/arena';
-import { View, type Result, type Screen } from '../ui/view';
+import { ZONES } from '../world/map';
 export class Game {
   private store: SaveStore;
   private progress: Progress;
+  private world: WorldSimulation;
   private view: View;
+  private renderer: WorldRenderer;
   private input: Input;
   private audio = new AudioManager();
-  private renderer: ArenaRenderer;
-  private player: Fighter = makeFighter(875, 200, 100, 1, 235, 1);
-  private enemy: Fighter | null = null;
-  private ai = new RoosterAI(0);
-  private paused = false;
-  private elapsed = 0;
-  private animationTime = 0;
-  private winner: 'win' | 'loss' | null = null;
-  private resultDelay = 0;
-  private enemyEggs = 0;
-  private bestCombo = 0;
-  private eggAnimations: { timer: number; x: number }[] = [];
-  private result?: Result;
-  private lastFrame = 0;
+  private last = 0;
   private accumulator = 0;
-  private hudClock = 0;
+  private time = 0;
+  private hudTimer = 0;
+  private saveTimer = 0;
+  private started = false;
   constructor(root: HTMLElement) {
-    let storage: Storage;
+    let storage: StorageLike;
     try {
-      storage = window.localStorage;
+      storage = localStorage;
     } catch {
       storage = {
         getItem: () => null,
         setItem: () => {
-          throw new Error('Storage unavailable');
+          throw Error('Storage blocked');
         },
         removeItem: () => {},
-      } as unknown as Storage;
+      };
     }
     this.store = new SaveStore(storage);
     this.progress = this.store.load();
+    this.world = new WorldSimulation(this.progress);
     this.audio.enabled = this.progress.settings.sound;
     this.view = new View(root, (action) => this.action(action));
-    this.renderer = new ArenaRenderer(this.view.canvas);
-    this.input = new Input(root, () => this.togglePause());
+    this.renderer = new WorldRenderer(this.view.canvas);
+    this.renderer.camera.follow(this.world.player, 0, true);
+    this.input = new Input(
+      root,
+      () => this.pause(),
+      () => this.action('interact'),
+      () => this.action('egg'),
+    );
     root.addEventListener('pointerdown', () => this.audio.unlock(), { passive: true });
-    window.addEventListener('keydown', (event) => {
+    window.addEventListener('keydown', (e) => {
       this.audio.unlock();
-      if (
-        event.code === 'KeyV' &&
-        !event.repeat &&
-        (this.view.screen === 'menu' || (this.view.screen === 'fight' && !this.paused))
-      )
-        this.layEgg();
+      if (e.code === 'KeyM' && !e.repeat && this.started)
+        this.action(this.view.overlay === 'map' ? 'resume' : 'map');
     });
-    window.addEventListener('blur', () => this.autoPause());
+    window.addEventListener('blur', () => {
+      if (this.view.overlay === 'none') this.pause();
+    });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        this.autoPause();
+        if (this.view.overlay === 'none') this.pause();
         this.persist();
       }
     });
     window.addEventListener('pagehide', () => this.persist());
     window.addEventListener('resize', () => {
-      if (window.innerHeight > window.innerWidth && window.innerWidth < 900) this.autoPause();
+      if (innerHeight > innerWidth && innerWidth < 950 && this.view.overlay === 'none')
+        this.pause();
     });
-    this.navigate('menu');
+    this.open('menu');
+    this.view.hud(this.world);
     if (this.store.warning) this.view.toast(this.store.warning);
-    requestAnimationFrame((time) => this.frame(time));
+    requestAnimationFrame((t) => this.frame(t));
   }
-  private persist(): void {
-    if (!this.store.save(this.progress) && this.store.warning) this.view.toast(this.store.warning);
-  }
-  private navigate(screen: Screen): void {
+  private open(overlay: Overlay, detail = ''): void {
     this.input.clear();
-    this.input.enabled = screen === 'fight' && !this.paused && !this.winner;
-    if (screen !== 'fight') {
-      this.enemy = null;
-      this.player.move = 0;
-      this.player.attack = null;
-      this.player.blocking = false;
-      this.player.hp = 200;
-      this.player.x = screen === 'menu' ? 875 : 960;
-    }
-    this.view.show(screen, this.progress, this.result);
-    this.view.eggTimer(this.progress);
+    this.input.enabled = overlay === 'none';
+    this.world.player.blocking = false;
+    this.world.player.moving = false;
+    this.view.show(overlay, this.progress, detail);
+    this.persist();
+  }
+  private pause(): void {
+    if (!this.started) return;
+    if (this.view.overlay === 'none') this.open('pause');
+    else if (['pause', 'map', 'help', 'settings'].includes(this.view.overlay)) this.open('none');
   }
   private action(action: string): void {
     this.audio.unlock();
-    this.audio.play('click');
+    if (action !== 'egg' && action !== 'interact') this.audio.play('click');
+    if (action === 'play') {
+      this.started = true;
+      this.open('none');
+      if (innerHeight > innerWidth && innerWidth < 950) this.open('pause');
+      return;
+    }
     if (action === 'pause') {
-      this.togglePause();
+      this.pause();
       return;
     }
     if (action === 'resume') {
-      this.paused = false;
-      this.input.clear();
-      this.input.enabled = !this.winner;
-      this.view.closeOverlay();
-      this.lastFrame = 0;
+      this.open(this.started ? 'none' : 'menu');
       return;
     }
-    if (action === 'leave') {
-      this.view.pause(true);
+    if (action === 'menu') {
+      this.started = false;
+      this.open('menu');
       return;
     }
-    if (action === 'forfeit') {
-      if (!this.winner) {
-        finishFight(this.progress, false, this.elapsed, 0, 0, this.bestCombo);
-        this.persist();
+    if (action === 'respawn') {
+      this.world.respawn();
+      this.renderer.camera.follow(this.world.player, 0, true);
+      this.open('none');
+      return;
+    }
+    if (action === 'interact' && this.view.overlay === 'none') {
+      this.world.interact(Date.now());
+      this.consumeEvents();
+      return;
+    }
+    if (action === 'egg' && this.view.overlay === 'none') {
+      this.world.layEgg(Date.now());
+      this.consumeEvents();
+      return;
+    }
+    if (action.startsWith('buy:') && this.view.overlay === 'shop') {
+      if (this.world.buy(action.slice(4) as UpgradeKind)) {
+        this.audio.play('buy');
+        this.open('shop');
+        this.view.toast('UPGRADED! A little more legendary.');
       }
-      this.paused = false;
-      this.winner = null;
-      this.navigate('menu');
-      return;
-    }
-    if (this.view.screen === 'fight' && action !== 'egg') {
-      this.autoPause();
-      return;
-    }
-    if (action === 'play') {
-      this.startFight();
-      return;
-    }
-    if (action === 'egg') {
-      this.layEgg();
       return;
     }
     if (action === 'sound') {
       this.progress.settings.sound = !this.progress.settings.sound;
       this.audio.enabled = this.progress.settings.sound;
-      this.persist();
-      this.navigate('settings');
-      return;
-    }
-    if (action === 'reset') {
-      this.view.resetConfirm();
-      return;
-    }
-    if (action === 'cancel-reset') {
-      this.view.closeOverlay();
+      this.open('settings');
       return;
     }
     if (action === 'confirm-reset') {
       this.progress = this.store.reset();
+      this.world = new WorldSimulation(this.progress);
+      this.renderer.camera.follow(this.world.player, 0, true);
       this.audio.enabled = this.progress.settings.sound;
-      this.navigate('settings');
-      this.view.toast('A fresh nest. A fresh start.');
+      this.started = false;
+      this.open('menu');
       return;
     }
-    if (action.startsWith('buy:')) {
-      const key = action.slice(4) as UpgradeKind;
-      if (purchase(this.progress, key)) {
-        this.persist();
-        this.audio.play('buy');
-        this.navigate('upgrades');
-        this.view.toast('UPGRADED! Your bird just got better.');
+    if (['help', 'settings', 'map', 'reset'].includes(action)) this.open(action as Overlay);
+  }
+  private consumeEvents(): void {
+    for (const event of this.world.events) {
+      this.renderer.event(event);
+      if (event.type === 'hit') this.audio.play(event.hit?.blocked ? 'block' : 'hit');
+      if (event.type === 'egg') {
+        this.audio.play('egg');
+        if (event.text) this.view.toast(event.text);
       }
-      return;
-    }
-    if (['menu', 'upgrades', 'settings', 'help'].includes(action)) this.navigate(action as Screen);
-  }
-  private startFight(): void {
-    const fighters = createCombat(this.progress);
-    this.player = fighters.player;
-    this.enemy = fighters.enemy;
-    this.ai = new RoosterAI(this.progress.stage % 3);
-    this.elapsed = 0;
-    this.winner = null;
-    this.paused = false;
-    this.resultDelay = 0;
-    this.enemyEggs = 0;
-    this.bestCombo = 0;
-    this.eggAnimations = [];
-    this.renderer.clear();
-    this.navigate('fight');
-    this.input.enabled = true;
-    this.lastFrame = 0;
-    this.accumulator = 0;
-    this.view.hud(this.player, this.enemy, 0, this.progress);
-    if (window.innerHeight > window.innerWidth && window.innerWidth < 900) this.autoPause();
-  }
-  private layEgg(): void {
-    if (
-      !['menu', 'fight'].includes(this.view.screen) ||
-      this.paused ||
-      (this.view.screen === 'fight' && this.winner) ||
-      this.player.lay > 0 ||
-      this.player.attack ||
-      this.player.stun > 0
-    )
-      return;
-    if (!claimEgg(this.progress, Date.now())) {
-      this.view.toast('Good eggs take time. Let this one recharge.');
-      return;
-    }
-    this.player.blocking = false;
-    this.player.lay = 1.15;
-    this.eggAnimations.push({ timer: 0.55, x: this.player.x });
-    this.audio.play('egg');
-    this.persist();
-    this.view.wallet(this.progress);
-    this.view.eggTimer(this.progress);
-  }
-  private togglePause(): void {
-    if (this.view.screen !== 'fight' || this.winner) return;
-    if (this.paused) this.action('resume');
-    else this.autoPause();
-  }
-  private autoPause(): void {
-    if (this.view.screen === 'fight' && !this.winner && !this.paused) {
-      this.paused = true;
-      this.input.enabled = false;
-      this.input.clear();
-      this.player.blocking = false;
-      this.player.move = 0;
-      this.view.pause();
-    }
-  }
-  private update(dt: number): void {
-    if (this.paused) return;
-    for (const egg of this.eggAnimations) {
-      egg.timer -= dt;
-      if (egg.timer <= 0) this.renderer.egg(egg.x);
-    }
-    this.eggAnimations = this.eggAnimations.filter((egg) => egg.timer > 0);
-    if (this.view.screen !== 'fight' || !this.enemy) {
-      this.player.lay = Math.max(0, this.player.lay - dt);
-      return;
-    }
-    if (this.winner) {
-      this.resultDelay += dt;
-      if (this.resultDelay > 1.35) this.navigate('results');
-      return;
-    }
-    this.elapsed += dt;
-    this.player.move = Number(this.input.down('right')) - Number(this.input.down('left'));
-    setBlock(this.player, this.input.down('block'));
-    for (const kind of ['kick', 'wing', 'peck'] as AttackKind[]) {
-      const press = this.input.take(kind);
-      if (press || this.input.down(kind)) startAttack(this.player, kind);
-    }
-    if (this.ai.update(this.enemy, this.player, dt)) {
-      this.enemyEggs++;
-      this.eggAnimations.push({ timer: 0.55, x: this.enemy.x });
-    }
-    updateFighter(this.player, dt);
-    updateFighter(this.enemy, dt);
-    separate(this.player, this.enemy);
-    const first = resolveHit(this.player, this.enemy, true),
-      second = resolveHit(this.enemy, this.player, false);
-    for (const hit of [first, second])
-      if (hit) {
-        this.renderer.hit(hit);
-        this.audio.play(hit.blocked ? 'block' : 'hit');
-        if (hit.player) this.bestCombo = Math.max(this.bestCombo, hit.combo);
+      if (event.type === 'notice') this.view.toast(event.text!);
+      if (event.type === 'zone')
+        this.view.toast(
+          ZONES.find((z) => z.id === event.text)!.name +
+            ' · ' +
+            ZONES.find((z) => z.id === event.text)!.subtitle,
+        );
+      if (event.type === 'shop') this.open('shop');
+      if (event.type === 'dialogue') this.open('dialogue', event.text);
+      if (event.type === 'defeat') {
+        this.audio.play('loss');
+        this.open('defeat', event.text);
       }
-    separate(this.player, this.enemy);
-    endAttack(this.player);
-    endAttack(this.enemy);
-    this.winner = outcome(this.player, this.enemy);
-    if (this.winner) {
-      const win = this.winner === 'win',
-        hp = this.player.hp / this.player.maxHp;
-      const amount = finishFight(
-        this.progress,
-        win,
-        this.elapsed,
-        hp,
-        this.enemyEggs,
-        this.bestCombo,
-      );
-      this.result = {
-        win,
-        reward: amount,
-        seconds: this.elapsed,
-        hp,
-        combo: this.bestCombo,
-        enemyEggs: this.enemyEggs,
-      };
-      this.player.move = 0;
-      this.enemy.move = 0;
-      this.player.blocking = false;
-      this.enemy.blocking = false;
-      this.input.enabled = false;
-      this.input.clear();
+      if (event.type === 'victory') {
+        this.audio.play('win');
+        this.open('victory', event.text);
+      }
+    }
+    this.world.events = [];
+    if (this.world.dirty) {
       this.persist();
-      this.audio.play(win ? 'win' : 'loss');
+      this.world.dirty = false;
     }
+    this.view.hud(this.world);
   }
-  private frame(time: number): void {
-    const elapsed = this.lastFrame ? Math.min(0.1, (time - this.lastFrame) / 1000) : 0;
-    this.lastFrame = time;
-    if (!this.paused) this.animationTime += elapsed;
-    this.accumulator += elapsed;
-    while (this.accumulator >= 1 / 60) {
-      this.update(Math.min(BALANCE.maxStep, 1 / 60));
-      this.accumulator -= 1 / 60;
-    }
-    const menu = this.view.screen !== 'fight';
-    // Keep the defeated opponent's appearance while the next stage is already saved.
-    const opponentIndex =
-      this.winner === 'win' && !menu ? (this.progress.stage - 1) % 3 : this.progress.stage % 3;
+  private persist(): void {
+    if (!this.store.save(this.progress) && this.store.warning) this.view.toast(this.store.warning);
+  }
+  private frame(t: number): void {
+    const dt = this.last ? Math.min(0.1, (t - this.last) / 1000) : 0;
+    this.last = t;
+    this.time += dt;
+    if (this.view.overlay === 'none') {
+      this.accumulator += dt;
+      while (this.accumulator >= 1 / 60) {
+        const attack =
+          (['kick', 'wing', 'peck'] as AttackKind[]).find((k) => this.input.down(k)) ?? null;
+        this.world.update(
+          1 / 60,
+          { move: this.input.movement(), block: this.input.down('block'), attack },
+          Date.now(),
+        );
+        this.accumulator -= 1 / 60;
+        this.consumeEvents();
+        if (this.view.overlay !== 'none') {
+          this.accumulator = 0;
+          break;
+        }
+      }
+    } else this.accumulator = 0;
     this.renderer.draw(
-      this.player,
-      this.enemy,
-      opponentIndex,
-      this.animationTime,
-      this.paused ? 0 : elapsed,
-      menu,
-      this.view.screen === 'results' ? (this.result?.win ? 'win' : 'loss') : this.winner,
+      this.world,
+      this.time,
+      this.view.overlay === 'none' || this.view.overlay === 'menu' ? dt : 0,
+      this.view.overlay === 'menu',
     );
-    this.hudClock += elapsed;
-    if (this.hudClock >= 0.06) {
-      this.hudClock = 0;
-      if (this.view.screen === 'fight' && this.enemy)
-        this.view.hud(this.player, this.enemy, this.elapsed, this.progress);
-      else this.view.eggTimer(this.progress);
+    this.hudTimer += dt;
+    this.saveTimer += dt;
+    if (this.hudTimer > 0.1) {
+      this.view.hud(this.world);
+      this.hudTimer = 0;
+    }
+    if (this.saveTimer > 5) {
+      this.persist();
+      this.saveTimer = 0;
     }
     requestAnimationFrame((next) => this.frame(next));
   }

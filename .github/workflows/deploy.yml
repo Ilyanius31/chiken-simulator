@@ -1,13 +1,13 @@
-name: Test and deploy Chicken Simulator
+name: Test, preview and deploy Chicken Simulator
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, feat/top-down-world-v0.2]
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: pages-${{ github.ref }}
+  group: chicken-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
@@ -21,16 +21,26 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
-      - name: Build for this repository's Pages subpath
+      - run: npm run format:check
+      - name: Build for the real repository subpath
         run: npm run build
         env:
           PAGES_BASE_PATH: /${{ github.event.repository.name }}/
+      - run: npm run preview:pack
+      - name: Downloadable review build
+        uses: actions/upload-artifact@v4
+        with:
+          name: chicken-simulator-v0.2-preview
+          path: |
+            artifacts/chicken-simulator-v0.2.html
+            dist/
+          retention-days: 14
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
           path: dist
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -40,8 +50,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v5
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

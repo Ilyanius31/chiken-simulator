@@ -1,198 +1,155 @@
-import { ATTACKS } from '../core/config';
 import type { Fighter } from '../core/combat';
+import { ATTACKS } from '../core/config';
 export interface Plumage {
-  color: string;
-  dark: string;
-  comb: number;
-  scale: number;
+  body: string;
+  tail: string;
+  comb?: number;
+  scale?: number;
 }
-export const HERO: Plumage = { color: '#fff0c5', dark: '#1d6258', comb: 3, scale: 1 };
+export const HERO: Plumage = { body: '#fff0c6', tail: '#34796c', comb: 3 };
 export function drawRooster(
-  ctx: CanvasRenderingContext2D,
-  f: Fighter,
-  y: number,
+  c: CanvasRenderingContext2D,
+  f: Pick<Fighter, 'x' | 'y' | 'angle' | 'moving' | 'hp' | 'hurt' | 'lay' | 'blocking' | 'attack'>,
   time: number,
-  plumage: Plumage,
-  scale = 1,
+  plumage: Plumage = HERO,
   victory = false,
 ): void {
-  const attack = f.attack,
-    cfg = attack && ATTACKS[attack.kind];
-  const windup = attack && cfg ? Math.min(1, attack.time / cfg.windup) : 0;
-  const strike =
-    attack && cfg && attack.time >= cfg.windup && attack.time < cfg.windup + cfg.active + 0.12;
-  const walking = Math.abs(f.move) > 0 && !attack && f.hp > 0;
-  const bob = walking ? Math.sin(time * 18) * 5 : Math.sin(time * 3.5) * 2;
-  ctx.save();
-  ctx.translate(f.x, y);
-  ctx.scale(scale * plumage.scale, scale * plumage.scale);
-  ctx.fillStyle = '#173b2c25';
-  ctx.beginPath();
-  ctx.ellipse(0, 2, 72, 13, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.scale(f.facing, 1);
-  if (f.hp <= 0) {
-    ctx.translate(0, -22);
-    ctx.rotate(-1.2);
-    ctx.globalAlpha = 0.8;
-  } else {
-    ctx.translate(0, bob - (victory ? Math.abs(Math.sin(time * 6)) * 22 : 0));
-    ctx.rotate(
-      f.hurt > 0
-        ? -0.15
-        : f.lay > 0
-          ? Math.sin(time * 28) * 0.07
-          : attack && !strike
-            ? -0.1 * windup
-            : strike
-              ? 0.16
-              : 0,
-    );
+  c.save();
+  c.translate(f.x, f.y);
+  const scale = plumage.scale ?? 1;
+  c.scale(scale, scale);
+  c.fillStyle = '#193f3433';
+  c.beginPath();
+  c.ellipse(3, 8, 25, 24, 0, 0, Math.PI * 2);
+  c.fill();
+  c.rotate(f.angle + Math.PI / 2);
+  const dead = f.hp <= 0;
+  if (dead) {
+    c.rotate(0.9);
+    c.globalAlpha = 0.7;
+    c.scale(1.15, 0.7);
   }
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  const shape = (path: string, fill: string, stroke = '#263e34', width = 3) => {
-    const p = new Path2D(path);
-    ctx.fillStyle = fill;
-    ctx.fill(p);
-    if (width) {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = width;
-      ctx.stroke(p);
-    }
+  const walk = f.moving ? Math.sin(time * 17) : Math.sin(time * 3) * 0.15;
+  c.translate(walk * 1.2, victory ? -Math.abs(Math.sin(time * 7)) * 5 : 0);
+  if (f.lay > 0) c.scale(1 + Math.sin(time * 24) * 0.06, 0.9);
+  const stroke = '#294738';
+  c.lineWidth = 2;
+  c.lineJoin = 'round';
+  c.lineCap = 'round';
+  const path = (d: string, color: string) => {
+    const p = new Path2D(d);
+    c.fillStyle = color;
+    c.fill(p);
+    c.strokeStyle = stroke;
+    c.stroke(p);
   };
-  // Broad, individually curved tail feathers give each bird a readable silhouette.
-  ctx.save();
-  ctx.translate(-30, -65);
-  ctx.rotate(Math.sin(time * 3) * 0.04);
-  shape('M 5 16 C -28 -2 -93 -34 -90 -86 C -63 -99 -26 -53 -8 -11 Z', plumage.dark);
-  shape('M -2 14 C -43 6 -109 -4 -112 -51 C -93 -75 -39 -43 1 -8 Z', '#328879');
-  shape('M 4 19 C -42 29 -97 16 -104 -18 C -80 -45 -36 -16 8 0 Z', plumage.dark);
-  ctx.strokeStyle = '#ffffff30';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(-78, -67);
-  ctx.quadraticCurveTo(-56, -30, -12, 3);
-  ctx.stroke();
-  ctx.restore();
-  // Legs, toes, and the extended kick.
-  ctx.strokeStyle = '#de9a38';
-  ctx.lineWidth = 8;
-  for (let leg = 0; leg < 2; leg++) {
-    const dx = leg ? 20 : -17,
-      stride = walking ? Math.sin(time * 18 + leg * Math.PI) * 16 : 0;
-    ctx.beginPath();
-    ctx.moveTo(dx, -36);
-    ctx.lineTo(dx + stride, -10);
-    if (strike && attack?.kind === 'kick' && leg) {
-      ctx.lineTo(94, -54);
-      ctx.lineTo(109, -57);
-    } else {
-      ctx.lineTo(dx + stride + 8, -4);
-      ctx.lineTo(dx + stride + 24, -4);
-      ctx.moveTo(dx + stride + 8, -4);
-      ctx.lineTo(dx + stride - 5, 0);
-    }
-    ctx.stroke();
+  // Seen from above: fan tail behind the body, feet at the sides, head toward the facing vector.
+  c.save();
+  c.translate(0, 15);
+  c.rotate(walk * 0.08);
+  for (let i = -1; i <= 1; i++) {
+    c.save();
+    c.rotate(i * 0.4);
+    path('M -6 1 Q -18 24 -9 38 Q 0 44 9 35 Q 16 13 6 0 Z', i === 0 ? plumage.tail : '#509689');
+    c.strokeStyle = '#ffffff33';
+    c.beginPath();
+    c.moveTo(0, 8);
+    c.lineTo(0, 31);
+    c.stroke();
+    c.restore();
   }
-  const body = f.hurt > 0 && !f.blocking ? '#fff8e8' : plumage.color;
-  shape(
-    'M -49 -92 C -50 -124 -9 -139 25 -120 C 56 -104 61 -66 37 -43 C 19 -24 -25 -25 -44 -49 C -53 -62 -56 -77 -49 -92 Z',
-    body,
-  );
-  shape(
-    'M 4 -110 C 20 -130 13 -154 31 -165 C 53 -177 72 -162 71 -144 L 64 -102 C 55 -79 35 -77 13 -87 Z',
-    body,
-  );
-  // Neck ruff.
-  shape(
-    'M 17 -117 L 23 -97 L 30 -104 L 35 -90 L 42 -102 L 48 -91 L 57 -111',
-    '#edb854',
-    '#b9843c',
-    2,
-  );
-  // A distinctive scalloped comb, varied for opponents.
-  ctx.save();
-  ctx.translate(33, -165);
-  let comb = 'M -12 7 Q -24 -7 -14 -17';
-  for (let i = 0; i < plumage.comb; i++) {
-    const x = -14 + i * 12;
-    comb += ` Q ${x - 1} ${-34 - (i % 2) * 7} ${x + 8} -20`;
+  c.restore();
+  c.strokeStyle = '#e8a546';
+  c.lineWidth = 4;
+  for (const side of [-1, 1]) {
+    const stride = walk * 5 * side;
+    c.beginPath();
+    c.moveTo(side * 11, 7);
+    c.lineTo(side * 21, 12 + stride);
+    c.lineTo(side * 24, 6 + stride);
+    c.moveTo(side * 21, 12 + stride);
+    c.lineTo(side * 28, 12 + stride);
+    c.stroke();
   }
-  comb += ' Q 44 -9 27 6 Z';
-  shape(comb, '#e7684e');
-  ctx.restore();
-  shape('M 55 -132 Q 70 -133 68 -116 Q 60 -104 54 -116 Z', '#dc5949');
-  // Beak lunges on a peck; eyebrow communicates windup.
-  ctx.save();
-  ctx.translate(strike && attack?.kind === 'peck' ? 25 : 0, 0);
-  shape('M 68 -148 L 94 -137 L 68 -129 Z', '#f5bd45');
-  ctx.strokeStyle = '#ad722a';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(70, -137);
-  ctx.lineTo(89, -137);
-  ctx.stroke();
-  ctx.fillStyle = '#fffdf2';
-  ctx.beginPath();
-  ctx.ellipse(56, -149, 10, 12, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#203a31';
-  ctx.beginPath();
-  ctx.ellipse(60, -148, 4.3, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(61, -151, 1.7, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#273f34';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(46, -162);
-  ctx.lineTo(66, -158 + (attack ? 4 : 0));
-  ctx.stroke();
-  ctx.restore();
-  // Articulated wing doubles as the visible block pose.
-  ctx.save();
-  ctx.translate(-7, -85);
-  ctx.rotate(
-    f.blocking
-      ? -1.5
-      : strike && attack?.kind === 'wing'
-        ? -1.1
-        : attack?.kind === 'wing'
-          ? 0.5 * windup
-          : Math.sin(time * 3) * 0.05,
-  );
-  shape(
-    'M -24 -11 C -8 -28 22 -18 34 1 C 39 15 20 31 -2 24 L -19 12 L -28 -2 Z',
-    plumage === HERO ? '#e3be76' : plumage.dark,
-  );
-  ctx.strokeStyle = '#263e3438';
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(-8 + i * 9, 1);
-    ctx.lineTo(6 + i * 7, 17);
-    ctx.stroke();
+  const attack = f.attack,
+    cfg = attack && ATTACKS[attack.kind],
+    strike = attack && cfg && attack.time >= cfg.windup;
+  if (strike && attack.kind === 'kick') {
+    c.strokeStyle = '#f3b642';
+    c.lineWidth = 6;
+    c.beginPath();
+    c.moveTo(12, 0);
+    c.lineTo(14, -49);
+    c.lineTo(23, -53);
+    c.stroke();
   }
-  ctx.restore();
+  c.fillStyle = f.hurt > 0 ? '#fffdf2' : plumage.body;
+  c.strokeStyle = stroke;
+  c.lineWidth = 2;
+  c.beginPath();
+  c.ellipse(0, 1, 21, 27, 0, 0, Math.PI * 2);
+  c.fill();
+  c.stroke();
+  c.fillStyle = '#ffffff35';
+  c.beginPath();
+  c.ellipse(-5, -3, 10, 17, -0.2, 0, Math.PI * 2);
+  c.fill();
+  for (const side of [-1, 1]) {
+    c.save();
+    c.translate(side * 16, 0);
+    c.rotate(side * (f.blocking ? -1.15 : strike && attack?.kind === 'wing' ? -1.4 : walk * 0.08));
+    c.scale(side, 1);
+    path(
+      'M 0 -15 Q 19 -13 16 9 Q 11 20 -1 16 Q 6 4 0 -15 Z',
+      plumage === HERO ? '#dfb970' : plumage.tail,
+    );
+    c.strokeStyle = '#8b793b66';
+    c.beginPath();
+    c.moveTo(6, -4);
+    c.lineTo(8, 12);
+    c.stroke();
+    c.restore();
+  }
+  c.save();
+  c.translate(0, strike && attack?.kind === 'peck' ? -9 : attack && !strike ? 4 : 0);
+  path('M -8 -30 L 0 -46 L 8 -30 Z', '#f5ba40');
+  c.fillStyle = f.hurt > 0 ? '#fffefa' : plumage.body;
+  c.strokeStyle = stroke;
+  c.beginPath();
+  c.ellipse(0, -22, 16, 16, 0, 0, Math.PI * 2);
+  c.fill();
+  c.stroke();
+  for (const side of [-1, 1]) {
+    c.fillStyle = '#fffdf3';
+    c.beginPath();
+    c.ellipse(side * 10, -26, 5, 6, side * 0.2, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = '#243e32';
+    c.beginPath();
+    c.arc(side * 10, -28, 2.6, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.fillStyle = '#e46850';
+  c.strokeStyle = '#ad4c3b';
+  c.lineWidth = 1.5;
+  for (let i = 0; i < (plumage.comb ?? 3); i++) {
+    c.beginPath();
+    c.ellipse(0, -30 + i * 7, 4.8, 7, 0.15, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+  }
+  c.restore();
   if (f.blocking) {
-    ctx.strokeStyle = '#86c4c5';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.ellipse(68, -94, 18, 56, -0.12, -1.4, 1.4);
-    ctx.stroke();
+    c.strokeStyle = '#9ee6e1';
+    c.lineWidth = 4;
+    c.beginPath();
+    c.arc(0, 0, 36, -Math.PI * 0.9, -Math.PI * 0.1);
+    c.stroke();
   }
-  if (attack?.kind === 'kick' && !strike) {
-    ctx.fillStyle = '#f8cf65';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText('!', 75, -190);
+  if (dead) {
+    c.fillStyle = '#f5d575';
+    c.font = '18px sans-serif';
+    c.fillText('✦', -8, -42);
   }
-  if (f.hp <= 0) {
-    ctx.fillStyle = '#f4bd44';
-    ctx.font = '26px sans-serif';
-    ctx.fillText('✦', 49, -190 + Math.sin(time * 4) * 5);
-  }
-  ctx.restore();
+  c.restore();
 }

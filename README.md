@@ -1,125 +1,105 @@
-# Chicken Simulator · v0.1
+# Chicken Simulator v0.2 — The Roostlands
 
-**Small wings. Big ambitions.** A lightweight, original 2D arcade fighter for Android browsers. Play as Sir Clucks-a-Lot, climb the pecking order, lay biologically questionable eggs, and invest them in a better bird. Cartoon slapstick only; no blood or realistic animal violence.
+**Small wings. Big world.** A top-down countryside action adventure for Android browsers. Explore, fight, collect questionable eggs, upgrade, and earn the Golden Comb.
 
-![Chicken Simulator on a phone in landscape](docs/preview.png)
+The old side-view battle scene has been replaced completely. Movement, combat, loot and interaction now happen in one continuous world, with a smooth following camera and a multitouch joystick.
 
-## Play and publish from an Android phone
+![Chicken Village on a phone in landscape](docs/v02-village.png)
 
-The connected repository is currently **`Ilyanius31/chiken-simulator`** (spelled `chiken`, without the second `c`). The game title is **Chicken Simulator**. No repository rename is required. The deploy workflow automatically uses the real repository name for asset paths.
+## The world
 
-**Publication status:** the repository contains everything needed for GitHub Pages. A successful public deployment must still be confirmed in GitHub Actions; a configured workflow is not proof of publication. No public URL is claimed as live here.
+| Zone             | What is actually playable                                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chicken Village  | Safe hub with houses, fences, Pip and Mabel, nests, the Feather Forge shop, signs, a training dummy and automatic health recovery.                         |
+| Sunny Fields     | Rookie and Speedy roosters, hay bales, crates, wild nests, trees, a pond and hidden egg stashes. Follow the eastern path.                                  |
+| Dark Forest      | Dense groves, mushrooms, rocks, fallen logs, stronger Bramble roosters and hidden rewards. Take the southern village path.                                 |
+| Champion’s Arena | A ring, banners, spectators and a challenge bell. Ring it to fight Lord Cluckington directly on the map. First victory awards 25 eggs and the Golden Comb. |
 
-1. Open the feature branch comparison in Chrome: [Prepare the v0.1 pull request](https://github.com/Ilyanius31/chiken-simulator/compare/main...feat/chicken-simulator-v0.1?expand=1). Tap **Create pull request**, then create it with title `Chicken Simulator v0.1 — first playable mobile release`. If GitHub hides controls, enable Chrome’s **Desktop site**.
-2. Wait for the **Test and deploy Chicken Simulator / build** check. Open changed files if desired, then **Merge pull request → Confirm merge**. The agent does not push to `main`.
-3. Open [Settings → Pages](https://github.com/Ilyanius31/chiken-simulator/settings/pages). Under **Build and deployment → Source**, choose **GitHub Actions**. You need repository administrator access. No API token or secret is required.
-4. Open [Actions](https://github.com/Ilyanius31/chiken-simulator/actions), choose **Test and deploy Chicken Simulator**. If the merge run failed before Pages was enabled, tap **Re-run all jobs**; or **Run workflow**, choose `main`, and run it.
-5. Wait until both **build** and **deploy** are green. Open the HTTPS link in the deployment summary or **Settings → Pages → Visit site**. With the current repository name, the expected address is `https://ilyanius31.github.io/chiken-simulator/`. This is an expected address, not a verified live link.
-6. Rotate the phone horizontally and play. Chrome → **Add to Home screen** is optional; no application installation is required.
+The world is 3072×2304 units (48×36 navigation tiles). All areas are connected by walkable paths. Obstacles block movement and sight; grass, flowers and mushrooms are decoration. Enemies detect through clear sight, follow paths around cover, occasionally reposition, and return home if pulled too far. The village is safe. Enemy respawns happen after 75 seconds, only away from the player.
 
-If you rename the repository to `chicken-simulator`, the next workflow run automatically builds for `/chicken-simulator/`, and the expected site becomes `https://ilyanius31.github.io/chicken-simulator/`. Update bookmarks after a rename. For a private repository, Pages availability depends on your GitHub plan; use a public repository if Pages settings say it is unavailable.
+## How to play
 
-### Deployment details
+| Action             | Phone                          | Keyboard          |
+| ------------------ | ------------------------------ | ----------------- |
+| Move freely        | Left joystick                  | WASD / arrow keys |
+| Peck               | PECK                           | J                 |
+| Wing slap          | WING                           | K                 |
+| Power kick         | KICK                           | L                 |
+| Block              | Hold BLOCK                     | Hold Space        |
+| Lay egg            | LAY EGG                        | V                 |
+| Interact           | INTERACT near a glowing object | E                 |
+| Map and objectives | Minimap                        | M                 |
+| Pause              | Pause button                   | Escape            |
 
-`.github/workflows/deploy.yml` runs on pushes to `main`/`master`, pull requests (validation only) and manual dispatch. It uses Node 22, `npm ci`, strict TypeScript checks, Vitest, and the production build. Official `configure-pages`, `upload-pages-artifact`, and `deploy-pages` actions publish `dist`. Only the deploy job gets `pages: write` and `id-token: write`; build has `contents: read`. The `github-pages` environment exposes the resulting URL. GitHub’s default Pages environment allows deployment from the default branch; a nondefault manual run may need environment approval. Prefer `main` for release.
+Face enemies to attack. There is modest forward target assistance, never a turn-around auto-hit. Peck is fast and short; wing slap has a wide arc; kick has a visible windup and strong knockback. Alternate attacks for a combo. Watch red enemy arcs and walk out of them. Blocking absorbs 78% of damage but drains stamina. Release attacks and block to recover. Enemies cannot hit through solid cover.
 
-## Controls
+Meet Pip, defeat a Rookie, collect 10 eggs, buy an upgrade, enter the forest, and challenge the Champion. The gold minimap marker shows your next objective; open the atlas to see all six goals and four zones.
 
-| Action     | Touch                              | Keyboard          |
-| ---------- | ---------------------------------- | ----------------- |
-| Move       | Left/right arrows under left thumb | A/D or arrow keys |
-| Peck       | PECK                               | J                 |
-| Wing slap  | WING SLAP                          | K                 |
-| Power kick | POWER KICK                         | L                 |
-| Block      | Hold BLOCK                         | Hold Space        |
-| Lay egg    | LAY EGG                            | V                 |
-| Pause      | Pause button                       | Escape            |
+Nests grant 3 eggs and refill after 60 seconds. Crates can be opened or struck and may contain 2 eggs. Hidden stashes grant 5 eggs once. Enemy rewards range from 3 to 5 eggs; the Champion grants 25 on first victory and 10 on later challenges. Lay Egg grants one egg every 30 seconds, improved to 10 seconds at maximum production level. Rewards are credited and saved immediately, then shown as animated world eggs, so switching apps cannot lose an award. Laying briefly prevents attacking, blocking and movement. Rival eggs add to their defeat reward.
 
-Move close before attacking. Hold an attack to repeat when ready; alternate attacks for up to a 4× combo (10% extra damage per additional step). The kick has a visible windup and a long cooldown. Blocking reduces damage by 78%, drains stamina, and temporarily breaks when exhausted. Recover stamina by releasing attacks and block. Moving and attacking use independent pointers.
+Visit the striped **Feather Forge** stall in Chicken Village to spend eggs. Attack, max health, stamina and production have five levels and rising costs. Upgrades affect current gameplay immediately. Defeat returns you to the village without taking eggs or upgrades. Leaving the arena zone withdraws the boss challenge so you can heal and try again.
 
-Egg production starts ready, then takes 30 seconds (10 at maximum upgrade). Laying briefly prevents moving, attacking or blocking. Eggs are awarded immediately and saved before the bounce animation, so leaving the tab cannot lose an earned egg. The production cooldown uses real time and persists across reloads; combat timers freeze while paused. Rival eggs are collected only on victory.
+## Review and play before merge
 
-A win grants 3 eggs, +1 for under 45 seconds, +1 for at least 65% HP left, plus any rival eggs. Upgrades start at 8 eggs (production: 10), so an upgrade is normally available after two or three fights. Upgrades have five levels with rising costs. Losses preserve currency and upgrades. Leaving a live fight through the pause menu records a loss; reloading does not resume a fight.
+Repository identity was verified as **`Ilyanius31/chiken-simulator`**. The feature branch is **`feat/top-down-world-v0.2`**, based on v0.1 commit **`e52501e`**, not on the empty original `main`.
 
-Rookie, Speedy and Champion cycle in that order. Every completed three-opponent circuit adds 8% of base opponent health and power. They have distinct silhouettes, palettes, movement speeds, reactions and attack selection.
+Every push to this branch runs **Test, preview and deploy Chicken Simulator**. After the build passes:
 
-## Development
+- The **chicken-simulator-v0.2-preview** Actions artifact contains the `dist` site and **`chicken-simulator-v0.2.html`**, a self-contained downloadable preview. Open [Actions](https://github.com/Ilyanius31/chiken-simulator/actions), select the latest feature-branch run and download the artifact. Local HTML support depends on the Android browser/file handler; this is not represented as a public HTTPS preview.
+- Source screenshots and the validation report are in `docs/`. No live pre-merge URL is claimed without an actual deployment.
 
-Requires Node.js 22.12+ (Node 24 also works) and npm. There are no production npm dependencies, external assets, fonts or API calls.
+## Publish after your review
+
+1. Review and merge the PR yourself. The agent/workflow must not merge it.
+2. If Pages is not enabled yet, open [Settings → Pages](https://github.com/Ilyanius31/chiken-simulator/settings/pages) on your phone. Under **Build and deployment → Source**, choose **GitHub Actions**. Chrome’s **Desktop site** can reveal hidden GitHub settings controls.
+3. The merge to `main` triggers type checking, tests, formatting, build, upload and the official GitHub Pages deployment. If the first deploy ran before Pages was enabled, rerun the workflow on `main`.
+4. Wait for a green **deploy** job, then use its HTTPS URL or **Settings → Pages → Visit site**.
+
+The expected address for this repository is `https://ilyanius31.github.io/chiken-simulator/`. It is an expected address, not a claim that the site is currently published. No API keys are required. The deploy job has only `pages: write` and `id-token: write`; all other jobs get only the permissions they need. Feature-branch and PR builds never overwrite the Pages site.
+
+## Develop and test
+
+Node 22.12+ and npm are required for development, not for playing. There are no runtime npm packages, remote fonts or fetched game assets.
 
 ```sh
 npm ci
 npm run dev
-```
-
-Vite serves under **`/chicken-simulator/`** by default. `npm run dev` binds to all interfaces for development environments. The published game is static and does not require this server.
-
-```sh
 npm run typecheck
 npm test
+npm run test:browser
 npm run build
+npm run preview:pack
 npm run preview
 ```
 
-Use `npm run format` to format source files and `npm run format:check` to check style.
+The default path is **`/chiken-simulator/`**, matching the real repository. CI can override it with `PAGES_BASE_PATH` if the repository is renamed. All production assets use that subpath. The application has no server-side routes.
 
-`dist/` is the complete production site. To reproduce the current misspelled repository’s Pages build:
+Playwright uses `/usr/bin/chromium` in Codex Cloud. Set `CHROMIUM_PATH` on another machine. It controls the actual game through keyboard/touch input; read-only Canvas data attributes expose position/enemy snapshots for assertions. Tests do not teleport the browser player, replace combat outcomes, or add test currency to the playthrough. A separate migration fixture intentionally supplies a v0.1 save.
 
-```sh
-PAGES_BASE_PATH=/chiken-simulator/ npm run build
-```
-
-### Browser checks
-
-```sh
-npm run test:browser
-```
-
-The supplied Playwright config uses `/usr/bin/chromium`. Set `CHROMIUM_PATH` to an installed Chromium executable on another machine. Browser tooling is a development dependency, never required on the player's phone. Automated checks cover a genuine keyboard-controlled Rookie victory, rewards, egg production, purchase persistence, the next rival, touch multitouch through Chrome DevTools, pointer cancellation, focus pause, portrait guidance and responsive layout. They use Chromium emulation rather than a physical Android phone. `test-results/` stores local screenshots and failures and is ignored by Git. Unit tests run in deployment CI; browser tests are a separate local check requiring Chromium.
-
-### Phone release checklist
-
-After opening the **actual deployment URL**:
-
-- Menu: see an animated rooster, lay an egg, check the counter and cooldown.
-- Start in landscape. Move with one thumb and hold Peck with the other; release both and verify movement stops.
-- Try all three attacks in range, hold Block, exhaust stamina and let it recover. The kick should visibly wind up and knock the rival back.
-- Press Home or switch tabs during a fight: it should pause. Return and resume. Rotate to portrait for the orientation prompt, then back to landscape and resume.
-- Win against Rookie, verify the reward breakdown and Speedy as the next rival. Lose or leave a fight and keep your upgrades.
-- Earn at least 8 eggs, buy Attack Power, check the balance and level, reload and verify both persist.
-- Mute sound, reload and check it remains muted. Open Reset, cancel, and confirm progress survives.
-- Check there is no page scrolling while holding controls, no stuck movement after an interrupted touch, and no missing JS/CSS assets under the repository subpath.
+`npm run format` formats sources; `npm run format:check` checks them. `npm run preview:pack` bundles production JS, CSS and the favicon into `artifacts/chicken-simulator-v0.2.html`. It fails on unexpected code splitting instead of silently emitting a broken preview. Generated artifacts are ignored by Git and uploaded by CI.
 
 ## Architecture
 
 ```text
-src/
-  core/
-    config.ts       attack tuning, opponent definitions, upgrade data
-    combat.ts       fighters, attack phases, damage, stamina, collision, outcome
-    ai.ts           reaction timers and finite combat decisions
-    economy.ts      eggs, prices, purchases, rewards, progression
-    save.ts         versioned validation, recovery, storage boundary
-    game.ts         fixed-step simulation and screen/lifecycle coordination
-  render/
-    rooster.ts      original articulated Canvas character drawing
-    arena.ts        procedural farm scene, particles, damage text, shake
-  platform/
-    input.ts        keyboard and independent captured pointers
-    audio.ts        gesture-unlocked Web Audio synthesis
-  ui/
-    view.ts         screen templates and incremental HUD updates
-    icons.ts        original inline vector UI icons
-  main.ts           entry point
-  style.css         responsive English UI and orientation guidance
+src/core/       combat, AI, balance, economy, save migration, game lifecycle
+src/world/      authored map, camera, collision/navigation, interactions, simulation
+src/render/     original overhead rooster art, environment art, cached terrain/effects
+src/platform/   independent multitouch joystick/buttons, keyboard, Web Audio
+src/ui/         menu, HUD, shop, atlas, dialogue, pause/settings/results
 ```
 
-Simulation uses a fixed 1/60-second step inside `requestAnimationFrame`, with bounded catch-up after a stall. Rendering uses device pixel ratio capped at 2. There are no per-hit asset fetches. Combat logic has no Canvas or DOM dependency. Attack values are centralized for balance changes. UI templates are kept in one layer for future extraction into an English/Russian string dictionary.
+The simulation advances at 60 fixed steps per second with bounded catch-up. Movement, combat, collision, camera, navigation, interactions and economy can be tested without a browser. Rendering culls off-screen objects, caches static terrain, caps device pixel ratio at 2 and uses no external art assets. Enemies use simple state transitions and bounded grid pathfinding rather than an AI library.
 
-Save key: `chicken-simulator:v1`. Fields include eggs, upgrade levels, wins/losses, stage, unlocked rivals, best time/combo, production deadline and sound settings. Each field is validated separately. A healthy previous revision is retained as a backup; corrupted JSON falls back to it. An unknown future schema is preserved and cannot be overwritten until an explicit reset. Denied/quota-limited storage displays a notice and keeps the session playable. Browser storage is device/origin-specific: clearing site data, changing domain or renaming the repository may affect persistence. There is no cross-device sync.
+The previous economy, upgrade categories, procedural audio, storage validation/backup design and testing tools were reused. The old camera, side-view renderer, one-dimensional collision, battle screens and two-button movement were replaced.
 
-## Scope and Milestone 2
+### Saves
 
-v0.1 includes one arena, three rival types, four upgrade tracks, procedural animation/audio and local progression. There is no multiplayer, server, monetization, account or leaderboard. No offline service worker is included; opening the site needs a connection. Android device performance, browser audio policies and real-thumb comfort still need a phone check after publication.
+`chicken-simulator:v2` stores eggs, upgrades, records, sound settings, exploration position, discovered zones, collected objects/respawn deadlines, objective progress and the Champion reward. A v0.1 save at `chicken-simulator:v1` is migrated safely; its original data is preserved. Fields are validated individually, a healthy previous v0.2 revision is backed up, and unknown newer schemas cannot be overwritten. Only the explicit confirmed reset removes both generations. When storage is unavailable, the game warns and remains playable in the current tab.
 
-Next: tune combat against real playtest feedback; improve Champion tactics; add a guided first match, bilingual string dictionaries, save export/import, reduced-motion settings and a second original arena. Preserve the small bundle and mobile controls before adding content.
+Saved positions inside changed geometry are moved to the village safely. Returning from a closed session restores position with full health; combat encounters are not serialized. Progress belongs to this browser and origin, so clearing site data or changing domain loses access to that local save. There is no account or cross-device sync.
+
+## Phone acceptance check
+
+After opening the real deployed HTTPS site, test landscape movement and simultaneous attacks with both thumbs; release/cancel touches and switch apps to check pause behavior. Talk to Pip, collect a nest, lay an egg, practice on the dummy, open a crate, defeat a Rookie and purchase an upgrade at the physical shop. Visit the forest and ring the arena bell. Reload to verify currency, upgrades, objectives and settings persist. Rotate to portrait for the guidance screen and back to resume. Listen to sounds after the first touch, then mute them.
+
+Browser emulation does not establish physical Android frame rate, audio behavior or thumb comfort. Those remain device checks. v0.2 intentionally has one authored world, no multiplayer, inventory/crafting, backend, monetization or service worker. Next work should prioritize phone playtest feedback, boss balance and save export/import before adding larger systems.

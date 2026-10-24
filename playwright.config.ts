@@ -4,7 +4,8 @@ export default defineConfig({
   timeout: 120_000,
   workers: 1,
   use: {
-    baseURL: 'http://127.0.0.1:4173/chicken-simulator/',
+    actionTimeout: 15_000,
+    baseURL: 'http://127.0.0.1:4173/chiken-simulator/',
     viewport: { width: 844, height: 390 },
     launchOptions: {
       executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
@@ -13,7 +14,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm run dev -- --port 4173',
-    url: 'http://127.0.0.1:4173/chicken-simulator/',
+    url: 'http://127.0.0.1:4173/chiken-simulator/',
     reuseExistingServer: !process.env.CI,
   },
 });

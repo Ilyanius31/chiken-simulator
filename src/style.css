@@ -1,42 +1,48 @@
 :root {
   font-family:
-    Inter,
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #203e33;
-  background: #f6f2e7;
+  color: #f5edce;
+  background: #183d36;
   font-synthesis: none;
-  font-weight: 500;
-  --green: #214f3d;
-  --orange: #e7754d;
-  --ink: #203e33;
-  --muted: #7d8675;
-  --cream: #f6f2e7;
+  --ink: #274c3b;
+  --paper: #f5edcf;
+  --gold: #e4bb66;
+  --muted: #8d9b7b;
 }
 * {
   box-sizing: border-box;
 }
-body {
+html,
+body,
+#app {
   margin: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
 }
 button {
   font: inherit;
+  color: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  color: inherit;
-}
-button:focus-visible {
-  outline: 3px solid #e99249;
-  outline-offset: 4px;
 }
 button:disabled {
+  opacity: 0.45;
   cursor: default;
-  opacity: 0.48;
+}
+button:focus-visible {
+  outline: 3px solid #fff0a6;
+  outline-offset: 3px;
+}
+button:active:not(:disabled) {
+  transform: translateY(2px);
 }
 button svg {
   pointer-events: none;
@@ -46,929 +52,1035 @@ svg {
   height: 24px;
   flex-shrink: 0;
 }
-button {
-  transition:
-    background 0.15s,
-    transform 0.15s,
-    box-shadow 0.15s;
-}
-button:active:not(:disabled) {
-  transform: translateY(2px);
-}
 #app {
-  max-width: 1800px;
-  margin: 0 auto;
-  min-height: 100dvh;
-}
-.topbar {
-  height: 86px;
-  padding: 0 5%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #314b3215;
-  background: #f6f2e7;
   position: relative;
-  z-index: 5;
-  gap: 16px;
+  isolation: isolate;
 }
-.brand {
-  border: 0;
-  background: none;
-  padding: 0;
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 1.3px;
-  white-space: nowrap;
-}
-.brand-light {
-  font-weight: 500;
-}
-.brand-mark {
-  background: var(--green);
-  color: #f8e9b6;
-  width: 38px;
-  height: 42px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  transform: rotate(-5deg);
-}
-.edition {
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: #8a8c79;
-}
-.edition span {
-  margin: 0 12px;
-  color: #c4c4ac;
-}
-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.wallet {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border: 1px solid #dedfcb;
-  border-radius: 24px;
-  font-size: 13px;
-  white-space: nowrap;
-}
-.wallet svg {
-  width: 16px;
-  height: 20px;
-  color: #d6a84c;
-}
-.wallet b {
-  font-size: 16px;
-}
-.wallet > span {
-  color: var(--muted);
-}
-.icon-button {
-  border: 1px solid #dadcca;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  background: transparent;
-  font-size: 17px;
-}
-.icon-button:hover {
-  background: #e8eadb;
-}
-#stage {
-  position: relative;
-  height: calc(100dvh - 86px);
-  min-height: 580px;
-  overflow: hidden;
-}
-#arena {
+#world {
   position: absolute;
   width: 100%;
   height: 100%;
   display: block;
 }
-#content {
-  position: relative;
-  height: 100%;
-  z-index: 1;
+.vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 130px #173a302e;
   pointer-events: none;
 }
-#content button,
-#content .panel {
+#hud,
+#controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#hud button,
+#controls button,
+.joystick {
   pointer-events: auto;
 }
-.hero {
+#hud {
+  z-index: 2;
+}
+#controls {
+  z-index: 3;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+kbd {
+  font: 600 9px inherit;
+  opacity: 0.55;
+}
+.player-card {
   position: absolute;
-  left: 7%;
-  top: 9%;
-  max-width: 570px;
-}
-.eyebrow {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 2.2px;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(22px, env(safe-area-inset-left));
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-.live-dot {
-  height: 7px;
-  width: 7px;
-  border-radius: 50%;
-  background: #e28c56;
-  box-shadow: 0 0 0 4px #e28c5614;
-}
-h1 {
-  font-size: clamp(65px, 7.6vw, 120px);
-  letter-spacing: -6px;
-  line-height: 0.98;
-  margin: 27px 0 22px;
-  font-weight: 850;
-}
-h1 em,
-h2 em {
-  font-family: Georgia, serif;
-  font-weight: 500;
-  color: var(--orange);
-}
-.hero p {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #657763;
-  margin: 0 0 28px;
-}
-.hero-actions {
-  display: flex;
   gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+  padding: 12px 15px 12px 10px;
+  width: 300px;
+  border-radius: 17px;
+  background: #244a3be8;
+  box-shadow:
+    0 4px 0 #17372970,
+    0 10px 30px #29453420;
+  border: 1px solid #a9bd8a45;
 }
-.button {
-  border: 1px solid transparent;
-  min-height: 50px;
-  border-radius: 8px;
-  font-size: 10px;
+.portrait {
+  width: 40px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #e8d8a3;
+  color: #476746;
+}
+.portrait svg {
+  width: 30px;
+  height: 30px;
+}
+.vitals {
+  flex: 1;
+  min-width: 0;
+}
+.player-name {
+  font-size: 8px;
+  letter-spacing: 0.8px;
   font-weight: 800;
-  letter-spacing: 1.2px;
-  padding: 16px 20px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.player-name span {
+  font-size: 8px;
+  letter-spacing: 0;
   white-space: nowrap;
 }
-.button svg {
+.bar {
+  height: 10px;
+  background: #153629;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #ebebc023;
+}
+.bar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #b5cf80;
+  border-radius: 8px;
+  transition: width 0.1s linear;
+}
+.bar.stamina {
+  height: 5px;
+  margin-top: 6px;
+}
+.bar.stamina i {
+  background: #ebc979;
+}
+.egg-wallet {
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  background: #f3e8bf;
+  color: #5c623c;
+  border: 2px solid #386047;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 5px 14px;
+  font-size: 14px;
+}
+.egg-wallet svg {
+  width: 15px;
+  height: 19px;
+  color: #c39648;
+}
+.location {
+  position: absolute;
+  top: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  text-align: center;
+  text-shadow: 0 2px 3px #294c3655;
+}
+.location-kicker {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: #fff6cf;
+}
+h2 {
+  font-family: Georgia, serif;
+  letter-spacing: -1px;
+  font-weight: 500;
+  font-size: 34px;
+  line-height: 1.1;
+  margin: 9px 0 13px;
+}
+.location h2 {
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  margin: 5px 0 11px;
+}
+#objective {
+  border: 1px solid #e8e2b843;
+  background: #284b3ccf;
+  border-radius: 20px;
+  padding: 8px 13px;
+  font-size: 10px;
+  line-height: 1.4;
+  max-width: 100%;
+  text-shadow: none;
+}
+.map-corner {
+  position: absolute;
+  right: 24px;
+  top: 20px;
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+.map-button {
+  padding: 5px;
+  background: #355b48;
+  border: 1px solid #e3dcac75;
+  border-radius: 12px;
+  box-shadow: 0 4px 0 #203f32aa;
+  position: relative;
+  overflow: hidden;
+}
+.map-button canvas {
+  display: block;
+  width: 136px;
+  height: 102px;
+  border-radius: 7px;
+  opacity: 0.9;
+}
+.map-button > span {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff6cf;
+  text-shadow: 0 1px 4px #173c2b;
+}
+.map-button kbd {
+  margin-left: 8px;
+}
+.pause-button {
+  border: 1px solid #dce5b66e;
+  background: #2d5140d9;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  font-weight: 900;
+}
+.joystick-wrap {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: max(35px, env(safe-area-inset-left));
+  text-align: center;
+}
+.joystick {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: #eff2ca24;
+  border: 2px solid #f6f1cf66;
+  box-shadow:
+    inset 0 0 0 12px #2d573622,
+    0 4px 20px #2d4d3022;
+  position: relative;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+}
+.stick-knob {
+  position: absolute;
+  width: 57px;
+  height: 57px;
+  border-radius: 50%;
+  background: #f3edc7e6;
+  border: 2px solid #fff5d9;
+  box-shadow:
+    0 4px 0 #56724b88,
+    0 6px 16px #294d3c40;
+  pointer-events: none;
+}
+.stick-guide {
+  font-size: 102px;
+  color: #f4efd83b;
+  font-weight: 200;
+  pointer-events: none;
+}
+.joystick-wrap > small {
+  display: block;
+  margin-top: 9px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff6d4;
+  text-shadow: 0 1px 3px #37563c;
+}
+.joystick-wrap kbd {
+  margin-left: 9px;
+  font-size: 7px;
+}
+.actions {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  right: max(25px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: end;
+}
+.attack-row,
+.utility-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ability {
+  width: 73px;
+  height: 76px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #f7e4b5;
+  border-radius: 24px;
+  background: #f4e7bcee;
+  color: #3a583d;
+  box-shadow:
+    0 5px 0 #53613f77,
+    0 8px 20px #1b3f2a20;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  touch-action: none;
+}
+.ability > span {
+  font-size: 28px;
+  height: 30px;
+  line-height: 30px;
+}
+.ability > b {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.ability kbd {
+  font-size: 7px;
+}
+.ability.wing {
+  background: #c7dcafef;
+  border-color: #e5edc5;
+}
+.ability.kick {
+  background: #ecc4a2f0;
+  border-color: #f6dec0;
+}
+.ability.block {
+  background: #bad5c9ef;
+  border-color: #e3ebc9;
+  margin-right: 9px;
+}
+.cooldown-cover {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--cooldown, 0%);
+  background: #254a4160;
+  pointer-events: none;
+}
+.ability.tired {
+  filter: saturate(0.3);
+  opacity: 0.65;
+}
+.held {
+  filter: brightness(0.82);
+  transform: translateY(3px) !important;
+  box-shadow: none !important;
+}
+.utility {
+  height: 43px;
+  border: 1px solid #e8e2b47a;
+  border-radius: 16px;
+  background: #355b46e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 0 #233d2b66;
+}
+.utility svg {
+  width: 15px;
+  height: 20px;
+  color: #e5c578;
+}
+.utility > span:first-child:not(#egg-cooldown) {
+  font-size: 20px;
+}
+.utility.interact {
+  background: #f3e5bdef;
+  color: #39563b;
+  min-width: 138px;
+  border-color: #fff0c7;
+}
+.utility.interact > span {
+  font-size: 18px;
+}
+.utility.waiting {
+  opacity: 0.7;
+}
+#interaction-prompt {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 52px;
+  max-width: 290px;
+  border-radius: 12px;
+  background: #294f3ce8;
+  color: #fff0c3;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 10px 15px;
+  text-align: center;
+  border: 1px solid #e5dfab50;
+  line-height: 1.5;
+}
+#interaction-prompt:empty {
+  display: none;
+}
+#boss-bar {
+  position: absolute;
+  top: 135px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  text-align: center;
+  background: #2b453ce8;
+  padding: 9px 13px;
+  border-radius: 12px;
+}
+#boss-bar > span {
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+.bar.boss {
+  margin-top: 7px;
+  height: 7px;
+}
+.bar.boss i {
+  background: #df9c83;
+}
+#overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+#overlay:not(:empty) {
+  pointer-events: auto;
+  background: #173c3273;
+  backdrop-filter: blur(5px);
+}
+[data-overlay='menu'] #overlay {
+  background: linear-gradient(90deg, #143e32ec 0%, #1f4938c9 40%, #214b3550 70%, #224b3310);
+  backdrop-filter: blur(1px);
+  padding: 0;
+}
+[data-overlay='menu'] #hud,
+[data-overlay='menu'] #controls {
+  display: none;
+}
+.menu-scene {
+  position: absolute;
+  inset: 0;
+}
+.game-logo {
+  position: absolute;
+  left: 6%;
+  top: 7%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.game-logo > svg {
+  width: 43px;
+  height: 43px;
+  background: #e4d3a2;
+  color: #32583f;
+  padding: 9px;
+  border-radius: 15px;
+  transform: rotate(-7deg);
+}
+.game-logo > span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.game-logo small {
+  display: block;
+  font-size: 6px;
+  letter-spacing: 2.3px;
+  margin-top: 7px;
+  color: #b6c59f;
+}
+.title-card {
+  position: absolute;
+  left: 8%;
+  top: 27%;
+  max-width: 530px;
+}
+.tag {
+  font-size: 8px;
+  letter-spacing: 2.1px;
+  font-weight: 800;
+  color: #9baf7e;
+}
+.title-card > .tag {
+  color: #d7c582;
+}
+h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(50px, 5.5vw, 86px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -3px;
+  margin: 21px 0;
+}
+h1 em {
+  font-style: italic;
+  color: #edc979;
+}
+.title-card > p {
+  color: #c5d1b3;
+  font-size: 13px;
+  line-height: 1.9;
+  margin-bottom: 25px;
+}
+.big-play {
+  min-height: 54px;
+  border: 1px solid #fff0b9;
+  border-radius: 12px;
+  background: #ebca83;
+  color: #2a503d;
+  box-shadow:
+    0 5px 0 #b6924e,
+    0 10px 35px #16372b40;
+  display: flex;
+  align-items: center;
+  gap: 27px;
+  justify-content: space-between;
+  padding: 15px 24px;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 1.2px;
+}
+.big-play svg {
   width: 20px;
+}
+.menu-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 23px 0;
+  color: #a7bc94;
+}
+.menu-links button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 8px;
+  letter-spacing: 1.3px;
+}
+.menu-links span {
+  font-size: 9px;
+  color: #d9bf78;
+}
+.save-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8px;
+  color: #9db48e;
+}
+.save-note svg {
+  width: 12px;
+  height: 16px;
+  color: #d6bc73;
+}
+.save-note > span {
+  margin: 0 4px;
+}
+.world-stamp {
+  position: absolute;
+  right: 7%;
+  bottom: 9%;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+  line-height: 1.9;
+  text-align: right;
+  text-shadow: 0 2px 3px #26422f;
+}
+.world-stamp > span {
+  display: block;
+  color: #e9ce8b;
+  font-size: 25px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 3px;
+}
+.world-stamp small {
+  font-weight: 400;
+  letter-spacing: 0.7px;
+  color: #dce4c6;
+  font-size: 9px;
+}
+.modal {
+  position: relative;
+  pointer-events: auto;
+  background: #f5edcf;
+  color: #304f3b;
+  border: 2px solid #fff1c9;
+  border-radius: 22px;
+  padding: 32px;
+  box-shadow:
+    0 7px 0 #28452e50,
+    0 25px 90px #173e3940;
+  max-width: 940px;
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  animation: appear 0.18s ease-out;
+}
+.modal .tag {
+  color: #8a9264;
+}
+.modal p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: #7b896a;
+}
+.modal h2 {
+  font-size: 38px;
+  margin: 12px 0 15px;
+}
+.close-button {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: 1px solid #a5af8650;
+  border-radius: 50%;
+  background: #e8e4c6;
+  color: #5b7351;
+  width: 30px;
+  height: 30px;
+  font-size: 24px;
+  line-height: 24px;
+  z-index: 1;
+}
+.compact-modal {
+  width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  text-align: center;
+}
+.compact-modal .tag {
+  margin-top: 7px;
+}
+.compact-modal h2 {
+  margin: 0;
+}
+.compact-modal p {
+  margin: 0 0 8px;
+}
+.button {
+  border: 1px solid #b3bd965e;
+  border-radius: 10px;
+  background: #e6e7c9;
+  min-height: 43px;
+  padding: 12px 17px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 3px 0 #c5c7a670;
+}
+.button svg {
+  width: 18px;
   height: 20px;
 }
 .primary {
-  background: var(--green);
-  color: #fff9e8;
-  box-shadow: 0 4px 0 #153c2d;
+  background: #376349;
+  color: #fff1ca;
+  border-color: #376349;
+  box-shadow: 0 4px 0 #244832;
 }
-.primary:hover {
-  background: #2e644c;
+.danger {
+  background: #b66c51;
+  color: #fff0cc;
+  border-color: #a55e44;
 }
-.secondary {
-  background: #f8f5e8dd;
-  border-color: #aab59a;
-  color: #395441;
-  box-shadow: 0 3px 0 #51664315;
+.two-buttons {
+  display: flex;
+  gap: 12px;
 }
-.secondary:hover {
-  background: #fff9e8;
+.two-buttons > button {
+  flex: 1;
 }
 .text-button {
-  font-size: 11px;
-  background: transparent;
+  background: none;
   border: 0;
-  color: #6f7e69;
-  padding: 17px 0;
-  letter-spacing: 0.2px;
-}
-.text-button span {
-  font-size: 14px;
-  margin-right: 5px;
-}
-.hero-caption {
-  position: absolute;
-  left: 65%;
-  top: 31%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 7px;
-  transform: rotate(4deg);
-}
-.small-tag {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 1.7px;
-  border: 1px solid #b8c7a8;
-  padding: 6px 9px;
-  border-radius: 4px;
-}
-.hero-caption b {
-  font-family: Georgia, serif;
-  font-size: 23px;
-  font-style: italic;
-}
-.hero-caption > span:last-child {
-  font-size: 10px;
-  color: #73836a;
-}
-.menu-bottom {
-  position: absolute;
-  bottom: 25px;
-  left: 5%;
-  right: 5%;
-  display: grid;
-  grid-template-columns: 1fr 1.1fr 2.1fr;
-  align-items: center;
-  gap: 24px;
-  background: #fcf9eddd;
-  border: 1px solid #fff9e5;
-  border-radius: 12px;
-  padding: 23px 25px;
-  box-shadow: 0 10px 25px #5c4d3010;
-  backdrop-filter: blur(10px);
-}
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.stat > span {
   font-size: 9px;
-  letter-spacing: 1.7px;
-  color: #839074;
-  font-weight: 700;
-}
-.stat > b {
-  font-size: 23px;
-  font-weight: 750;
-  white-space: nowrap;
-}
-.stat small {
-  font-size: 9px;
-  color: #778569;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-.stat i {
-  font-size: 16px;
-  color: #b8bca4;
-  margin: 0 8px;
-  font-style: normal;
-}
-.next-rival {
-  border-left: 1px solid #dadfca;
-  padding-left: 25px;
-}
-.next-rival > b {
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.next-rival svg {
-  width: 18px;
-  color: #7c8d6c;
-}
-.egg-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 0;
-  background: #eae9cf;
-  padding: 13px 16px;
-  border-radius: 8px;
-  text-align: left;
-  min-width: 0;
-}
-.egg-card-icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 42px;
-  background: #f6f1d6;
-  border-radius: 50%;
-  color: #d2aa5b;
-  flex-shrink: 0;
-}
-.egg-card-icon svg {
-  width: 21px;
-  height: 27px;
-}
-.egg-card > span:nth-child(2) {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.egg-card b {
-  font-size: 11px;
-  white-space: nowrap;
-}
-.egg-card small {
-  font-size: 9px;
-  color: #859070;
-}
-.egg-pill {
-  font-size: 8px;
-  font-weight: 850;
-  padding: 8px 10px;
-  background: #f8f4dc;
-  border-radius: 5px;
-  white-space: nowrap;
-  margin-left: auto;
-}
-.egg-wait .egg-pill {
-  color: #999777;
-}
-.yard-label {
-  position: absolute;
-  right: 6%;
-  bottom: 154px;
-  letter-spacing: 2px;
-  font-size: 8px;
-  color: #6e785f;
-}
-.yard-label span {
-  margin: 0 13px;
-  color: #9c9c70;
-}
-.panel {
-  background: #f9f6ebef;
-  border: 1px solid #fffdf6;
-  border-radius: 18px;
-  padding: 34px;
-  box-shadow: 0 16px 65px #324e2c12;
-  backdrop-filter: blur(14px);
-}
-.shop {
-  position: absolute;
-  inset: 5% 5% auto;
+  padding: 12px;
+  color: #728362;
+  letter-spacing: 0.8px;
 }
 .panel-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
-  gap: 16px;
+  gap: 20px;
+  padding-right: 33px;
+  margin-bottom: 23px;
 }
-h2 {
-  font-size: 42px;
-  line-height: 1.1;
-  letter-spacing: -1.8px;
-  margin: 12px 0;
+.panel-heading h2 {
+  margin: 8px 0;
 }
-h2 > span {
-  color: var(--orange);
-}
-.panel p {
-  font-size: 12px;
-  color: #7d8972;
-  line-height: 1.6;
+.panel-heading p {
   margin: 0;
 }
-.compact {
-  padding: 10px 15px;
-  min-height: 38px;
-  font-size: 9px;
+.shop-wallet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 27px;
+  background: #e9dfba;
+  padding: 13px 20px;
+  border-radius: 15px;
+}
+.shop-wallet svg {
+  color: #c39b4b;
+  width: 23px;
+  height: 29px;
 }
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 .upgrade-card {
-  position: relative;
-  background: #fffdf4;
-  border: 1px solid #e3e5d3;
-  border-radius: 12px;
-  padding: 24px 20px;
+  background: #fcf7e3;
+  border: 1px solid #e3dfbe;
+  border-radius: 14px;
+  padding: 19px 16px;
   min-width: 0;
 }
-.upgrade-icon {
-  width: 43px;
-  height: 43px;
-  border-radius: 12px;
-  background: #ede6ce;
-  display: grid;
-  place-items: center;
-  font-size: 26px;
-  color: #b88a3c;
-}
-.upgrade-icon.attack {
-  background: #f8dfd2;
-  color: #c36748;
-}
-.upgrade-icon.health {
-  background: #f2dddd;
-  color: #c06b67;
-}
-.upgrade-icon.stamina {
-  background: #deeadb;
-  color: #60875b;
-}
-.level {
-  position: absolute;
-  right: 16px;
-  top: 35px;
-  font-size: 8px;
-  color: #839074;
-  letter-spacing: 1px;
-}
-h3 {
-  font-size: 16px;
-  letter-spacing: -0.4px;
-  margin: 22px 0 9px;
-}
-.upgrade-card p {
-  font-size: 11px;
-  min-height: 49px;
-}
-.level-dots {
-  display: flex;
-  gap: 5px;
-  margin: 24px 0;
-}
-.level-dots i {
-  height: 5px;
-  background: #e7e9da;
-  border-radius: 3px;
-  flex: 1;
-}
-.level-dots .filled {
-  background: #759d6f;
-}
-.buy {
-  width: 100%;
-  font-size: 9px;
-  letter-spacing: 0.7px;
-  padding: 13px 10px;
-  gap: 6px;
-  min-height: 43px;
-}
-.buy svg {
-  width: 13px;
-  height: 18px;
-  color: #e5bc69;
-}
-.buy span {
-  margin-left: auto;
-  font-size: 8px;
-}
-.current-stats {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-  padding: 24px 0 0;
-  font-size: 10px;
-  flex-wrap: wrap;
-}
-.current-stats > span {
-  font-size: 8px;
-  letter-spacing: 1.4px;
-  color: #929a80;
-}
-.small-panel {
-  width: min(580px, 90%);
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.settings-row {
+.upgrade-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
-  padding: 20px 0;
-  border-bottom: 1px solid #e2e5d3;
-  margin-bottom: 14px;
+  gap: 13px;
 }
-.settings-row h3 {
-  margin: 0 0 7px;
+.upgrade-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #ead3b7;
+  font-size: 23px;
+  color: #af6f48;
+}
+.upgrade-symbol.health {
+  background: #ead3bf;
+  color: #b57e69;
+}
+.upgrade-symbol.stamina {
+  background: #dce4bf;
+  color: #7b9960;
+}
+.upgrade-top > small {
+  font-size: 6px;
+  letter-spacing: 0.8px;
+  color: #899475;
+  white-space: nowrap;
+}
+.upgrade-card h3 {
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+.upgrade-card p {
+  font-size: 10px;
+  min-height: 51px;
+  margin: 0;
+}
+.level-dots {
+  display: flex;
+  gap: 4px;
+  margin: 19px 0;
+}
+.level-dots i {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  background: #e0e4cd;
+}
+.level-dots .filled {
+  background: #94b37c;
+}
+.buy {
+  width: 100%;
+  padding: 11px 8px;
+  font-size: 8px;
+  gap: 6px;
+  background: #3f694d;
+  color: #fff0c6;
+  border: 0;
+}
+.buy:disabled {
+  background: #e7e6cd;
+  color: #728166;
+}
+.buy svg {
+  width: 12px;
+  height: 16px;
+  color: #d9b668;
+}
+.buy > span {
+  margin-left: auto;
+  font-size: 7px;
+}
+.stats-strip {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 24px;
+  font-size: 9px;
+  color: #738560;
+}
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+  padding: 17px 0;
+  border-bottom: 1px solid #cdd3b390;
+}
+.settings-row b {
+  font-size: 13px;
+}
+.settings-row p {
+  font-size: 10px;
+  margin: 6px 0 0;
 }
 .toggle {
-  width: 54px;
-  min-width: 54px;
+  width: 52px;
+  min-width: 52px;
   height: 30px;
-  border: 0;
   border-radius: 20px;
-  background: #b8c2ae;
+  border: 0;
+  background: #c1c9ab;
   padding: 4px;
 }
 .toggle i {
   display: block;
   width: 22px;
   height: 22px;
-  background: #fffaf0;
   border-radius: 50%;
+  background: #fff6d9;
   transition: transform 0.2s;
 }
 .toggle.on {
-  background: #53835b;
+  background: #759b66;
 }
 .toggle.on i {
-  transform: translateX(24px);
+  transform: translateX(22px);
 }
-.danger {
-  background: #b85743;
-  color: #fff9eb;
-  box-shadow: 0 3px 0 #8b3e2e;
+.guide-modal {
+  width: 830px;
 }
-.privacy-note {
-  margin-top: 20px !important;
-  font-size: 10px !important;
-}
-.help-panel {
-  position: absolute;
-  top: 5%;
-  left: 10%;
-  right: 10%;
-}
-.help-grid {
+.guide-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
-  margin: 28px 0;
+  gap: 24px;
+  margin: 25px 0;
 }
-.help-grid b {
+.guide-grid b {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.guide-grid p {
   font-size: 11px;
-  letter-spacing: 1px;
+  margin: 9px 0;
 }
-.help-grid p {
-  margin-top: 10px;
+.atlas-modal {
+  width: 880px;
 }
-.help-tip {
-  margin: 18px 0 !important;
-}
-.result-panel {
-  position: absolute;
-  top: 14%;
-  left: 7%;
-  max-width: 640px;
-}
-.result-panel h2 {
-  font-size: 80px;
-  letter-spacing: -4px;
-}
-.result-panel > p {
-  font-size: 13px;
-  color: #718068;
-}
-.result-stats {
-  display: flex;
-  gap: 30px;
-  margin: 27px 0;
-}
-.result-stats > span {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.result-stats small {
-  font-size: 8px;
-  letter-spacing: 1.8px;
-  color: #80906f;
-}
-.result-stats b {
-  font-size: 25px;
-  display: flex;
-  gap: 7px;
-  align-items: center;
-}
-.result-stats svg {
-  width: 20px;
-  color: #c19a48;
-}
-.result-panel .reward-detail {
-  font-size: 10px;
-  margin: 0 0 28px;
-}
-.fight-hud {
-  position: absolute;
-  top: 22px;
-  left: 4%;
-  right: 4%;
+.atlas-layout {
   display: grid;
-  grid-template-columns: 1fr 145px 1fr;
-  gap: 28px;
-  align-items: start;
-}
-.fighter-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 10px;
-  margin-bottom: 8px;
-  letter-spacing: 0.8px;
-}
-.fighter-label > span {
-  font-size: 10px;
-  white-space: nowrap;
-  font-weight: 700;
-  color: #6d7d65;
-}
-.meter {
-  height: 14px;
-  background: #53674c20;
-  border: 2px solid #f9f4dd;
-  border-radius: 7px;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px #54705030;
-}
-.meter i {
-  display: block;
-  height: 100%;
-  width: 100%;
-  transition: width 0.1s linear;
-  background: #4c825a;
-  border-radius: 3px;
-}
-.meter.stamina {
-  height: 7px;
-  width: 72%;
-  margin-top: 8px;
-  border-width: 1px;
-}
-.meter.stamina i {
-  background: #d6ac46;
-}
-.stamina-label {
-  font-size: 8px;
-  color: #6c7e61;
-  margin-top: 5px;
-  display: inline-block;
-  letter-spacing: 1px;
-}
-.enemy-health i {
-  background: #d97655;
-}
-.enemy-status .fighter-label {
-  flex-direction: row-reverse;
-}
-.enemy-status {
-  text-align: right;
-}
-.opponent-title {
-  font-size: 9px;
-  color: #6d7d65;
-  display: inline-block;
-  margin-top: 9px;
-}
-.round-info {
-  text-align: center;
-  display: flex;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 25px;
   align-items: center;
-  flex-direction: column;
-  gap: 4px;
+}
+.atlas-map {
   position: relative;
-}
-.round-info > span {
-  font-size: 8px;
-  letter-spacing: 2px;
-}
-.round-info > b {
-  font-size: 24px;
-  letter-spacing: 1px;
-  font-variant-numeric: tabular-nums;
-}
-.pause-button {
-  background: #faf6e9c9;
-  border: 1px solid #a1b295;
-  border-radius: 7px;
-  width: 32px;
-  height: 27px;
-  font-weight: 900;
-  font-size: 12px;
-}
-.controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 15px 4% max(15px, env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  background: #f6f2e7f5;
-  border-top: 1px solid #d3dac1;
-  pointer-events: auto !important;
-}
-.controls button {
-  position: relative;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.movement {
-  display: flex;
-  gap: 9px;
-}
-.movement button {
-  width: 72px;
-  height: 68px;
-  border: 1px solid #d0d8c1;
-  border-radius: 14px;
-  background: #fdf9ec;
-  box-shadow: 0 4px 0 #d5dcc6;
-  font-size: 31px;
-  font-weight: 600;
-}
-.movement small {
-  display: block;
-  font-size: 8px;
-  position: absolute;
-  bottom: 6px;
-  left: 0;
-  right: 0;
-  color: #89987a;
-}
-.lay-button {
-  height: 60px;
-  border: 1px solid #dcd4ac;
-  background: #eee7cb;
+  border: 7px solid #e0d9af;
   border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 0 #c0be99;
+}
+.atlas-map canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.zone-label {
+  position: absolute;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff8ce;
+  text-shadow: 0 2px 3px #294830;
+  text-align: center;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.zone-label.village {
+  left: 25%;
+  top: 23%;
+}
+.zone-label.fields {
+  left: 75%;
+  top: 23%;
+}
+.zone-label.forest {
+  left: 25%;
+  top: 73%;
+}
+.zone-label.arena {
+  left: 75%;
+  top: 73%;
+}
+.objectives-list h3 {
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin: 0 0 17px;
+}
+.objectives-list p {
+  font-size: 11px;
+  line-height: 1.5;
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 0 14px;
-  min-width: 123px;
+  margin: 12px 0;
 }
-.lay-button svg {
-  color: #c29a4c;
-  width: 20px;
-  height: 26px;
+.objectives-list p span {
+  font-size: 16px;
+  color: #afaa72;
 }
-.lay-button span {
-  font-size: 9px;
-  letter-spacing: 1px;
-  font-weight: 800;
+.objectives-list .done {
+  color: #6c8d56;
 }
-.lay-button small {
+.objectives-list .done span {
+  color: #7d9d61;
+}
+.objectives-list > small {
   font-size: 8px;
-  color: #939470;
+  line-height: 1.8;
+  display: block;
+  color: #929b7a;
+  margin-top: 20px;
 }
-.combat-buttons {
-  margin-left: auto;
+.dialogue-modal {
   display: flex;
-  gap: 10px;
-}
-.combat-buttons button {
-  width: 94px;
-  height: 70px;
-  border-radius: 13px;
-  border: 1px solid #cad5be;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  overflow: hidden;
-  box-shadow: 0 4px 0 #c2cdb7;
-  background: #e5ebdc;
+  gap: 25px;
+  max-width: 650px;
 }
-.combat-buttons button > span {
-  font-size: 23px;
-  height: 24px;
-  line-height: 24px;
-}
-.combat-buttons button > b {
-  font-size: 8px;
-  letter-spacing: 1px;
-  z-index: 1;
-}
-.combat-buttons button > small {
-  font-size: 7px;
-  color: #738368;
-  z-index: 1;
-}
-.combat-buttons .peck {
-  background: #f4e9cb;
-  border-color: #e4cea0;
-  box-shadow: 0 4px 0 #d5c18f;
-}
-.combat-buttons .wing {
-  background: #e0eade;
-  border-color: #becdb7;
-}
-.combat-buttons .kick {
-  background: #f2dccb;
-  border-color: #dfb89b;
-  box-shadow: 0 4px 0 #cfa38a;
-}
-.cooldown-shade {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  height: var(--cooldown, 0%);
-  background: #30433533;
-  pointer-events: none;
-}
-.controls .held {
-  background: #bdceb0 !important;
-  transform: translateY(3px);
-  box-shadow: none !important;
-}
-.combat-buttons .tired {
-  filter: saturate(0.25);
-  opacity: 0.65;
-}
-.fight-callout {
-  position: absolute;
-  top: 39%;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-weight: 850;
-  font-size: 31px;
-  letter-spacing: 4px;
-  transition: opacity 0.35s;
-  pointer-events: none;
-  text-shadow: 0 2px 0 #fff4d6;
-}
-.fight-callout em {
-  color: #ce6a42;
-  font-style: normal;
-}
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 15;
-  background: #1a352a66;
+.dialogue-avatar {
+  min-width: 80px;
+  height: 94px;
   display: grid;
   place-items: center;
-  backdrop-filter: blur(6px);
-  padding: 16px;
+  background: #e7d5a0;
+  border-radius: 25px;
+  color: #718a5a;
 }
-.modal {
-  width: min(430px, 100%);
-  background: #faf5e7;
-  padding: 30px;
-  border-radius: 18px;
-  box-shadow: 0 20px 100px #18342833;
+.dialogue-avatar svg {
+  width: 50px;
+  height: 50px;
+}
+.dialogue-modal h2 {
+  font-size: 29px;
+}
+.dialogue-modal p {
+  margin: 0 0 20px;
+}
+.result-emblem {
+  font-size: 59px;
+  color: #bc9147;
+}
+.result-eggs {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  text-align: center;
-}
-.modal .eyebrow {
+  align-items: center;
   justify-content: center;
-}
-.modal h2 {
-  margin: 0;
-}
-.modal p {
+  gap: 9px;
   font-size: 12px;
-  line-height: 1.7;
-  color: #7d8972;
-  margin: 0 0 10px;
+  color: #8a875d;
+  margin-bottom: 14px;
 }
-#overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-#overlay:not(:empty) {
-  pointer-events: auto;
+.result-eggs svg {
+  color: #d0ae57;
+  width: 20px;
 }
 #toast {
-  position: fixed;
-  bottom: 24px;
+  position: absolute;
+  z-index: 10;
+  top: 31%;
   left: 50%;
-  transform: translate(-50%, 30px);
-  background: #254d3ff2;
-  color: #fff4d7;
-  border-radius: 9px;
-  padding: 13px 20px;
-  z-index: 30;
+  transform: translateX(-50%);
+  background: #234f3eef;
+  border: 1px solid #d9deb083;
+  color: #fff1ba;
+  max-width: 75%;
+  padding: 12px 22px;
+  border-radius: 14px;
   font-size: 12px;
+  font-weight: 650;
   pointer-events: none;
-  opacity: 0;
-  max-width: 90%;
   text-align: center;
+  opacity: 0;
+  box-shadow: 0 8px 20px #173b3325;
 }
 #toast.visible {
   animation: toast 3s both;
+}
+.rotate-prompt {
+  display: none;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes toast {
   0%,
   100% {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translate(-50%, 10px);
   }
   10%,
   85% {
@@ -976,976 +1088,729 @@ h3 {
     transform: translate(-50%, 0);
   }
 }
-.rotate-hint {
-  display: none;
-}
-[data-screen='fight'] {
-  height: 100dvh;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-[data-screen='fight'] #stage {
-  height: calc(100dvh - 86px);
-  min-height: 0;
-}
-[data-screen='fight'] #arena {
-  height: calc(100% - 103px);
-}
-[data-screen='fight'] .edition {
-  visibility: hidden;
-}
-[data-screen='fight'] .topbar {
-  background: #f8f4e8;
-}
-[data-screen='upgrades'] #arena,
-[data-screen='settings'] #arena,
-[data-screen='help'] #arena {
-  opacity: 0.4;
-}
-@media (min-width: 1500px) {
-  .hero {
-    top: 12%;
-  }
-  .menu-bottom {
-    bottom: 40px;
-  }
-  .hero-caption {
-    top: 39%;
-  }
-  .yard-label {
-    bottom: 190px;
-  }
-}
 @media (max-width: 1100px) {
-  .edition {
-    display: none;
+  .player-card {
+    width: 245px;
+    gap: 9px;
+    padding: 10px;
   }
-  .topbar {
+  .portrait {
+    width: 34px;
+    height: 40px;
+  }
+  .player-name {
+    font-size: 6px;
+    gap: 4px;
+  }
+  .player-name span {
+    font-size: 7px;
+  }
+  .location {
+    width: 300px;
+  }
+  .map-button canvas {
+    width: 110px;
+    height: 82px;
+  }
+  .map-corner {
+    gap: 7px;
+  }
+  .location h2 {
+    font-size: 17px;
+  }
+  #objective {
+    font-size: 9px;
+  }
+  .ability {
+    width: 66px;
+    height: 69px;
+  }
+  .actions {
+    gap: 9px;
+  }
+  .attack-row {
+    gap: 8px;
+  }
+  .ability.block {
+    margin-right: 3px;
+  }
+  .joystick {
+    width: 120px;
+    height: 120px;
+  }
+  .title-card {
+    top: 25%;
+  }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  .player-card {
+    top: 12px;
+    left: 16px;
+    width: 213px;
+    padding: 8px;
+    border-radius: 13px;
+    gap: 8px;
+  }
+  .portrait {
+    width: 27px;
+    height: 33px;
+    border-radius: 9px;
+  }
+  .portrait svg {
+    width: 24px;
+    height: 24px;
+  }
+  .player-name {
+    font-size: 6px;
+    margin-bottom: 5px;
+    letter-spacing: 0.3px;
+  }
+  .player-name span {
+    font-size: 6px;
+  }
+  .bar {
+    height: 8px;
+  }
+  .bar.stamina {
+    height: 4px;
+    margin-top: 5px;
+  }
+  .egg-wallet {
+    font-size: 11px;
+    padding: 3px 10px;
+    left: 8px;
+    gap: 5px;
+    border-radius: 0 0 8px 8px;
+  }
+  .egg-wallet svg {
+    width: 11px;
+    height: 15px;
+  }
+  .location {
+    top: 14px;
+    width: 300px;
+  }
+  .location-kicker {
+    font-size: 6px;
+    letter-spacing: 2px;
+  }
+  .location h2 {
+    font-size: 15px;
+    margin: 4px 0 7px;
+  }
+  .map-corner {
+    top: 12px;
+    right: 14px;
+    gap: 7px;
+  }
+  .map-button {
+    padding: 3px;
+    border-radius: 9px;
+  }
+  .map-button canvas {
+    width: 91px;
     height: 68px;
-    padding: 0 4%;
+    border-radius: 5px;
   }
-  #stage {
-    height: calc(100dvh - 68px);
-    min-height: 570px;
+  .map-button > span {
+    font-size: 6px;
+    bottom: 6px;
   }
-  .hero {
-    left: 5%;
-    top: 9%;
+  .pause-button {
+    width: 29px;
+    height: 29px;
+    border-radius: 8px;
+    font-size: 11px;
+  }
+  #objective {
+    font-size: 8px;
+    padding: 6px 11px;
+    max-width: 285px;
+  }
+  .joystick-wrap {
+    left: max(24px, env(safe-area-inset-left));
+    bottom: 16px;
+  }
+  .joystick {
+    width: 110px;
+    height: 110px;
+  }
+  .stick-knob {
+    width: 48px;
+    height: 48px;
+  }
+  .stick-guide {
+    font-size: 85px;
+  }
+  .joystick-wrap > small {
+    font-size: 6px;
+    margin-top: 6px;
+  }
+  .joystick-wrap kbd {
+    font-size: 6px;
+  }
+  .actions {
+    bottom: 16px;
+    right: max(16px, env(safe-area-inset-right));
+    gap: 9px;
+  }
+  .ability {
+    width: 58px;
+    height: 61px;
+    border-radius: 19px;
+    gap: 2px;
+  }
+  .ability > span {
+    font-size: 24px;
+    height: 26px;
+    line-height: 26px;
+  }
+  .ability > b {
+    font-size: 7px;
+  }
+  .ability kbd {
+    font-size: 6px;
+  }
+  .attack-row {
+    gap: 7px;
+  }
+  .utility-row {
+    gap: 8px;
+  }
+  .utility {
+    height: 35px;
+    min-width: 0;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 8px;
+    gap: 7px;
+  }
+  .utility.interact {
+    min-width: 117px;
+  }
+  .utility svg {
+    width: 12px;
+    height: 17px;
+  }
+  .utility kbd {
+    font-size: 6px;
+  }
+  #interaction-prompt {
+    bottom: 37px;
+    left: 44%;
+    font-size: 8px;
+    max-width: 210px;
+    padding: 8px 11px;
+  }
+  #boss-bar {
+    top: 92px;
+    width: 220px;
+    padding: 7px 11px;
+  }
+  #boss-bar > span {
+    font-size: 6px;
+  }
+  .bar.boss {
+    height: 5px;
+    margin-top: 5px;
+  }
+  .game-logo {
+    top: 7%;
+    left: 6%;
+    gap: 10px;
+  }
+  .game-logo > svg {
+    width: 31px;
+    height: 31px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+  .game-logo > span {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  .game-logo small {
+    font-size: 5px;
+    margin-top: 5px;
+  }
+  .title-card {
+    top: 25%;
+    left: 8%;
+    max-width: 450px;
+  }
+  .tag {
+    font-size: 6px;
+    letter-spacing: 1.7px;
   }
   h1 {
-    font-size: 86px;
+    font-size: 51px;
+    letter-spacing: -2px;
+    margin: 12px 0;
   }
-  .hero-caption {
-    left: 67%;
-    top: 35%;
+  .title-card > p {
+    font-size: 10px;
+    line-height: 1.7;
+    margin: 12px 0 17px;
   }
-  .menu-bottom {
-    gap: 17px;
-    padding: 17px;
-    grid-template-columns: 1fr 1fr 1.8fr;
+  .big-play {
+    min-height: 41px;
+    padding: 11px 17px;
+    font-size: 8px;
+    border-radius: 9px;
+    gap: 25px;
   }
-  .egg-card {
+  .big-play svg {
+    width: 16px;
+    height: 16px;
+  }
+  .menu-links {
+    margin: 17px 0;
+    gap: 15px;
+  }
+  .menu-links button {
+    font-size: 6px;
+  }
+  .save-note {
+    font-size: 6px;
+    gap: 5px;
+  }
+  .save-note svg {
+    width: 9px;
+    height: 12px;
+  }
+  .world-stamp {
+    font-size: 7px;
+    right: 7%;
+    bottom: 12%;
+  }
+  .world-stamp > span {
+    font-size: 21px;
+  }
+  .world-stamp small {
+    font-size: 7px;
+  }
+  #overlay {
+    padding: 14px;
+  }
+  .modal {
+    max-height: calc(100dvh - 28px);
+    padding: 21px;
+    border-radius: 17px;
+  }
+  .modal h2 {
+    font-size: 27px;
+    margin: 8px 0 10px;
+  }
+  .modal p {
+    font-size: 10px;
+  }
+  .compact-modal {
+    width: 380px;
+    gap: 11px;
+  }
+  .compact-modal .tag {
+    margin-top: 2px;
+  }
+  .compact-modal h2 {
+    margin: 0;
+  }
+  .close-button {
+    top: 10px;
+    right: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 21px;
+    line-height: 20px;
+  }
+  .button {
+    min-height: 34px;
+    padding: 9px 12px;
+    font-size: 8px;
+    border-radius: 8px;
     gap: 8px;
-    padding: 12px;
   }
-  .egg-card small {
-    display: none;
-  }
-  .egg-card b {
-    white-space: normal;
-    line-height: 1.5;
-  }
-  .next-rival {
-    padding-left: 17px;
-  }
-  .egg-pill {
-    font-size: 7px;
-  }
-  .upgrade-card {
-    padding: 20px 14px;
-  }
-  .level {
-    right: 12px;
-    font-size: 7px;
-  }
-  .buy span {
-    display: none;
-  }
-  .shop {
-    inset: 4% 4% auto;
-    padding: 25px;
+  .button svg {
+    width: 14px;
+    height: 16px;
   }
   .panel-heading {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    padding-right: 32px;
+  }
+  .shop-wallet {
+    font-size: 22px;
+    padding: 8px 14px;
+    border-radius: 11px;
+  }
+  .shop-wallet svg {
+    width: 18px;
+    height: 24px;
   }
   .upgrade-grid {
     gap: 10px;
   }
-  .result-panel {
-    top: 13%;
+  .upgrade-card {
+    padding: 13px 11px;
+    border-radius: 10px;
   }
-  .result-panel h2 {
-    font-size: 70px;
-  }
-  [data-screen='fight'] #stage {
-    height: calc(100dvh - 68px);
-  }
-  .fight-hud {
-    grid-template-columns: 1fr 100px 1fr;
-    gap: 18px;
-  }
-  .controls {
-    gap: 20px;
-  }
-  .combat-buttons button {
-    width: 82px;
-  }
-  .movement button {
-    width: 65px;
-  }
-}
-@media (max-height: 600px) and (orientation: landscape) {
-  .topbar {
-    height: 49px;
-    padding: 0 4%;
-  }
-  .brand {
-    font-size: 11px;
-  }
-  .brand-mark {
-    height: 29px;
-    width: 28px;
-    border-radius: 9px;
-  }
-  .brand-mark svg {
-    width: 21px;
-    height: 21px;
-  }
-  nav {
-    gap: 9px;
-  }
-  .wallet {
-    padding: 4px 11px;
-    font-size: 10px;
-  }
-  .wallet b {
-    font-size: 13px;
-  }
-  .wallet svg {
-    width: 13px;
-    height: 17px;
-  }
-  .icon-button {
+  .upgrade-symbol {
     width: 28px;
     height: 28px;
-    font-size: 14px;
-  }
-  #stage {
-    height: calc(100dvh - 49px);
-    min-height: 0;
-  }
-  .hero {
-    top: 7%;
-    left: 5%;
-    max-width: 400px;
-  }
-  .eyebrow {
-    font-size: 7px;
-    letter-spacing: 1.6px;
-    gap: 6px;
-  }
-  .live-dot {
-    width: 5px;
-    height: 5px;
-  }
-  h1 {
-    font-size: 57px;
-    letter-spacing: -3px;
-    margin: 12px 0 10px;
-    line-height: 0.93;
-  }
-  .hero p {
-    font-size: 10px;
-    line-height: 1.6;
-    margin-bottom: 15px;
-  }
-  .hero-actions {
-    gap: 9px;
-  }
-  .button {
-    min-height: 36px;
-    padding: 10px 13px;
-    font-size: 8px;
-    gap: 10px;
-    border-radius: 6px;
-  }
-  .button svg {
-    width: 16px;
-    height: 16px;
-  }
-  .text-button {
-    font-size: 8px;
-    padding: 9px 0;
-  }
-  .text-button span {
-    font-size: 11px;
-  }
-  .hero-caption {
-    left: 66%;
-    top: 16%;
-    gap: 4px;
-  }
-  .hero-caption b {
-    font-size: 17px;
-  }
-  .small-tag {
-    font-size: 6px;
-    padding: 4px 6px;
-  }
-  .hero-caption > span:last-child {
-    font-size: 8px;
-  }
-  .menu-bottom {
-    bottom: 12px;
-    left: 4%;
-    right: 4%;
-    padding: 10px 14px;
-    gap: 15px;
-    border-radius: 9px;
-    grid-template-columns: 1fr 1.15fr 2fr;
-  }
-  .stat {
-    gap: 5px;
-  }
-  .stat > span {
-    font-size: 6px;
-    letter-spacing: 1.3px;
-  }
-  .stat > b {
-    font-size: 17px;
-  }
-  .stat small {
-    font-size: 6px;
-  }
-  .stat i {
-    font-size: 11px;
-    margin: 0 4px;
-  }
-  .next-rival > b {
-    font-size: 10px;
-    gap: 8px;
-  }
-  .next-rival svg {
-    width: 12px;
-  }
-  .egg-card {
-    padding: 7px 9px;
-    gap: 8px;
-  }
-  .egg-card-icon {
-    width: 26px;
-    height: 29px;
-  }
-  .egg-card-icon svg {
-    width: 15px;
-    height: 21px;
-  }
-  .egg-card b {
-    font-size: 8px;
-  }
-  .egg-pill {
-    font-size: 6px;
-    padding: 6px;
-  }
-  .yard-label {
-    font-size: 6px;
-    bottom: 91px;
-  }
-  .shop {
-    inset: 4% 4% auto;
-    padding: 18px;
-  }
-  .panel-heading {
-    margin-bottom: 13px;
-  }
-  h2 {
-    font-size: 27px;
-    letter-spacing: -1px;
-    margin: 7px 0;
-  }
-  .panel p {
-    font-size: 9px;
-  }
-  .upgrade-card {
-    padding: 12px;
-  }
-  .upgrade-icon {
-    width: 29px;
-    height: 29px;
     font-size: 20px;
-    border-radius: 8px;
+    border-radius: 9px;
   }
-  .level {
-    top: 22px;
-    font-size: 6px;
+  .upgrade-top {
+    gap: 10px;
+  }
+  .upgrade-top small {
+    font-size: 5px;
   }
   .upgrade-card h3 {
-    font-size: 12px;
-    margin: 13px 0 7px;
+    font-size: 11px;
+    margin: 12px 0 7px;
   }
   .upgrade-card p {
     font-size: 8px;
-    min-height: 35px;
+    min-height: 42px;
   }
   .level-dots {
-    margin: 13px 0;
-    gap: 4px;
+    margin: 12px 0;
   }
   .level-dots i {
     height: 4px;
   }
   .buy {
     font-size: 7px;
+    padding: 9px 7px;
+    gap: 4px;
     min-height: 30px;
-    padding: 8px;
   }
   .buy svg {
     width: 10px;
     height: 14px;
   }
-  .current-stats {
-    font-size: 8px;
-    gap: 17px;
-    padding-top: 14px;
-  }
-  .current-stats > span {
+  .buy > span {
     font-size: 6px;
   }
-  .small-panel {
-    top: 5%;
-    padding: 22px;
-    width: 490px;
+  .stats-strip {
+    font-size: 7px;
+    gap: 22px;
+    margin-top: 17px;
+  }
+  .shop-modal {
+    width: min(840px, 95vw);
   }
   .settings-row {
-    padding: 12px 0;
-    margin-bottom: 10px;
+    padding: 11px 0;
   }
-  .settings-row h3 {
-    font-size: 12px;
-    margin-bottom: 4px;
+  .settings-row b {
+    font-size: 11px;
   }
-  .privacy-note {
-    font-size: 8px !important;
-    margin-top: 14px !important;
+  .settings-row p {
+    font-size: 8px;
+    margin-top: 4px;
   }
-  .help-panel {
-    top: 4%;
-    left: 6%;
-    right: 6%;
-    padding: 20px;
+  .guide-modal {
+    width: 760px;
   }
-  .help-grid {
-    gap: 14px;
+  .guide-grid {
+    gap: 17px;
     margin: 17px 0;
   }
-  .help-grid b {
+  .guide-grid b {
     font-size: 8px;
   }
-  .help-grid p {
-    font-size: 8px;
-    margin-top: 6px;
+  .guide-grid p {
+    font-size: 9px;
+    margin: 6px 0;
   }
-  .help-tip {
-    font-size: 8px !important;
-    margin: 12px 0 !important;
+  .atlas-modal {
+    width: 750px;
   }
-  .result-panel {
-    top: 8%;
-    left: 6%;
-    max-width: 520px;
-  }
-  .result-panel h2 {
-    font-size: 49px;
-    letter-spacing: -2px;
-    margin: 13px 0;
-  }
-  .result-panel > p {
-    font-size: 10px;
-  }
-  .result-stats {
-    gap: 25px;
-    margin: 18px 0;
-  }
-  .result-stats small {
-    font-size: 6px;
-  }
-  .result-stats b {
-    font-size: 20px;
-  }
-  .result-stats svg {
-    width: 16px;
-    height: 20px;
-  }
-  .result-panel .reward-detail {
-    font-size: 8px;
-    margin-bottom: 17px;
-  }
-  [data-screen='fight'] #stage {
-    height: calc(100dvh - 49px);
-  }
-  [data-screen='fight'] #arena {
-    height: calc(100% - 88px);
-  }
-  .fight-hud {
-    top: 12px;
-    gap: 15px;
-    grid-template-columns: 1fr 90px 1fr;
-  }
-  .fighter-label {
-    font-size: 8px;
-    letter-spacing: 0.5px;
-    margin-bottom: 5px;
-  }
-  .fighter-label > span {
-    font-size: 8px;
-  }
-  .meter {
-    height: 11px;
-  }
-  .meter.stamina {
-    height: 5px;
-    margin-top: 5px;
-  }
-  .stamina-label {
-    font-size: 6px;
-    margin-top: 3px;
-  }
-  .opponent-title {
-    font-size: 7px;
-    margin-top: 6px;
-  }
-  .round-info {
-    gap: 2px;
-  }
-  .round-info > b {
-    font-size: 18px;
-  }
-  .round-info > span {
-    font-size: 6px;
-  }
-  .pause-button {
-    width: 27px;
-    height: 23px;
-    font-size: 10px;
-  }
-  .controls {
-    height: 88px;
-    padding: 10px 4%;
+  .atlas-layout {
     gap: 20px;
+    grid-template-columns: 1fr 1fr;
   }
-  .movement {
+  .atlas-map {
+    border-width: 5px;
+  }
+  .zone-label {
+    font-size: 6px;
+  }
+  .objectives-list h3 {
+    font-size: 7px;
+    margin-bottom: 10px;
+  }
+  .objectives-list p {
+    font-size: 9px;
+    margin: 9px 0;
     gap: 7px;
   }
-  .movement button {
-    width: 62px;
-    height: 59px;
-    font-size: 26px;
-    border-radius: 11px;
+  .objectives-list p span {
+    font-size: 12px;
   }
-  .movement small {
-    font-size: 6px;
-    bottom: 5px;
+  .objectives-list > small {
+    font-size: 7px;
+    margin-top: 12px;
   }
-  .lay-button {
-    height: 51px;
-    min-width: 102px;
-    padding: 0 10px;
-    gap: 6px;
+  .dialogue-modal {
+    width: 600px;
+    gap: 20px;
   }
-  .lay-button svg {
-    width: 16px;
-    height: 21px;
+  .dialogue-avatar {
+    min-width: 65px;
+    height: 77px;
+    border-radius: 20px;
   }
-  .lay-button span {
-    font-size: 8px;
+  .dialogue-avatar svg {
+    width: 42px;
+    height: 42px;
   }
-  .lay-button small {
-    display: none;
+  .dialogue-modal h2 {
+    font-size: 24px;
   }
-  .combat-buttons {
-    gap: 8px;
+  .dialogue-modal p {
+    font-size: 11px;
+    margin-bottom: 14px;
   }
-  .combat-buttons button {
-    width: 72px;
-    height: 59px;
-    gap: 3px;
-    border-radius: 11px;
+  .result-emblem {
+    font-size: 39px;
   }
-  .combat-buttons button > span {
-    font-size: 20px;
-    height: 21px;
-    line-height: 21px;
-  }
-  .combat-buttons button > b {
-    font-size: 6px;
-    letter-spacing: 0.7px;
-  }
-  .combat-buttons button > small {
-    font-size: 6px;
-  }
-  .fight-callout {
-    font-size: 22px;
-    top: 33%;
-  }
-  .modal {
-    padding: 23px;
-    gap: 12px;
-    width: 370px;
-  }
-  .modal p {
+  .result-eggs {
     font-size: 10px;
+    margin-bottom: 8px;
   }
-  .modal h2 {
-    font-size: 28px;
+  #toast {
+    font-size: 10px;
+    padding: 10px 16px;
+    max-width: 67%;
   }
 }
 @media (max-width: 740px) and (orientation: landscape) {
-  .hero {
-    top: 6%;
+  .player-card {
+    width: 185px;
   }
-  h1 {
-    font-size: 47px;
-    margin: 10px 0;
+  .portrait {
+    display: none;
   }
-  .hero p {
-    font-size: 9px;
-    margin-bottom: 11px;
+  .location {
+    width: 246px;
+    left: 51%;
   }
-  .hero .button {
+  #objective {
     font-size: 7px;
-    padding: 10px;
-    gap: 7px;
+    padding: 5px 8px;
   }
-  .hero-caption {
-    left: 68%;
-    top: 14%;
+  .location h2 {
+    font-size: 13px;
   }
-  .hero-caption b {
-    font-size: 14px;
+  .map-button canvas {
+    width: 73px;
+    height: 55px;
   }
-  .menu-bottom {
-    grid-template-columns: 0.9fr 1fr 1.6fr;
-    gap: 9px;
-    padding: 9px 11px;
-    bottom: 9px;
+  .map-corner {
+    right: 11px;
+    gap: 5px;
   }
-  .egg-card b {
-    display: none;
+  .joystick {
+    width: 102px;
+    height: 102px;
   }
-  .egg-card > span:nth-child(2) {
-    display: none;
+  .joystick-wrap {
+    left: 19px;
   }
-  .next-rival {
-    padding-left: 10px;
+  .ability {
+    width: 53px;
+    height: 58px;
   }
-  .next-rival > b {
-    font-size: 8px;
-  }
-  .egg-pill {
-    font-size: 6px;
-  }
-  .yard-label {
-    bottom: 80px;
-  }
-  .movement button {
-    width: 54px;
-    height: 56px;
-  }
-  .controls {
-    gap: 12px;
-    padding: 8px 3%;
-  }
-  .combat-buttons {
+  .attack-row {
     gap: 6px;
   }
-  .combat-buttons button {
-    width: 62px;
-    height: 56px;
+  .actions {
+    right: 12px;
   }
-  .lay-button {
-    min-width: 87px;
-    height: 49px;
-    padding: 0 8px;
-  }
-  .lay-button span {
-    font-size: 7px;
-  }
-  .upgrade-card {
-    padding: 10px;
-  }
-  .upgrade-card h3 {
-    font-size: 11px;
-  }
-  .upgrade-card p {
-    font-size: 7px;
-  }
-  .level {
-    font-size: 5px;
-    right: 7px;
-  }
-  .upgrade-icon {
-    width: 25px;
-    height: 25px;
-  }
-  .current-stats {
-    gap: 12px;
-    font-size: 7px;
-  }
-  .help-grid {
-    gap: 11px;
-  }
-  .help-grid p {
-    font-size: 7px;
-  }
-  .help-grid b {
-    font-size: 7px;
-  }
-  .result-panel h2 {
-    font-size: 43px;
-  }
-}
-@media (orientation: portrait) and (max-width: 900px) {
-  .topbar {
-    height: 65px;
-    padding: 0 17px;
-  }
-  .brand {
-    font-size: 10px;
-    gap: 8px;
-    letter-spacing: 0.8px;
-  }
-  .brand-mark {
-    width: 29px;
+  .utility {
     height: 34px;
   }
-  .wallet {
-    padding: 6px 9px;
-    gap: 5px;
+  .utility.interact {
+    min-width: 108px;
   }
-  .wallet > span {
-    display: none;
+  #interaction-prompt {
+    left: 43%;
+    max-width: 180px;
+    font-size: 7px;
+    bottom: 30px;
   }
-  nav {
-    gap: 7px;
-  }
-  .icon-button {
-    width: 29px;
-    height: 29px;
-  }
-  .wallet b {
-    font-size: 13px;
-  }
-  #stage {
-    height: calc(100dvh - 65px);
-    min-height: 720px;
-  }
-  .hero {
-    left: 7%;
-    top: 5%;
-    right: 5%;
-    max-width: none;
+  .title-card {
+    top: 26%;
   }
   h1 {
-    font-size: 70px;
-    letter-spacing: -4px;
-    margin: 19px 0 17px;
+    font-size: 45px;
+    margin: 10px 0;
   }
-  .hero .eyebrow {
-    font-size: 8px;
+  .title-card > p {
+    font-size: 9px;
+    margin: 10px 0 13px;
   }
-  .hero p {
-    font-size: 12px;
-    margin-bottom: 19px;
+  .menu-links {
+    margin: 15px 0;
   }
-  .hero .button {
-    font-size: 8px;
-    min-height: 44px;
-    padding: 12px;
-  }
-  .text-button {
-    font-size: 10px;
-  }
-  .hero-caption {
-    left: 59%;
-    top: 51%;
-    gap: 5px;
-  }
-  .hero-caption b {
-    font-size: 16px;
-  }
-  .small-tag {
+  .world-stamp {
     font-size: 6px;
   }
-  .hero-caption > span:last-child {
+  .guide-grid {
+    gap: 13px;
+  }
+  .guide-grid p {
     font-size: 8px;
   }
-  .menu-bottom {
-    grid-template-columns: 1fr 1.3fr;
-    padding: 14px;
-    bottom: 17px;
-    gap: 16px;
-  }
-  .egg-card {
-    grid-column: 1/-1;
-    min-height: 55px;
-  }
-  .egg-card b {
-    font-size: 10px;
-  }
-  .egg-card small {
-    display: block;
-    font-size: 8px;
-  }
-  .stat > b {
-    font-size: 21px;
-  }
-  .stat > span {
+  .guide-grid b {
     font-size: 7px;
-  }
-  .stat small {
-    font-size: 7px;
-  }
-  .next-rival > b {
-    font-size: 10px;
-  }
-  .egg-pill {
-    font-size: 7px;
-  }
-  .yard-label {
-    display: none;
-  }
-  .shop {
-    position: relative;
-    inset: auto;
-    margin: 18px 4%;
-    padding: 20px;
-  }
-  .panel-heading {
-    align-items: start;
-  }
-  .panel-heading h2 {
-    font-size: 27px;
-  }
-  .panel-heading .eyebrow {
-    font-size: 6px;
-    letter-spacing: 1px;
-  }
-  .panel-heading p {
-    font-size: 10px;
-  }
-  .panel-heading .compact {
-    padding: 8px;
-    font-size: 7px;
-    min-height: 32px;
-  }
-  .upgrade-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
   }
   .upgrade-card {
-    padding: 14px 12px;
-  }
-  .upgrade-card h3 {
-    font-size: 13px;
-    margin-top: 16px;
+    padding: 11px 9px;
   }
   .upgrade-card p {
+    font-size: 7px;
+    min-height: 37px;
+  }
+  .upgrade-card h3 {
     font-size: 10px;
-    min-height: 65px;
   }
-  .upgrade-icon {
-    width: 34px;
-    height: 34px;
+  .buy > span {
+    display: none;
   }
-  .level {
+  .upgrade-top small {
+    font-size: 5px;
+  }
+  .stats-strip {
     font-size: 6px;
-    top: 26px;
-    right: 9px;
   }
-  .level-dots {
-    margin: 17px 0;
+  .zone-label {
+    font-size: 5px;
+    letter-spacing: 0.5px;
   }
-  .buy {
-    font-size: 8px;
-    min-height: 36px;
+  .atlas-layout {
+    gap: 15px;
   }
-  .current-stats {
-    gap: 13px;
+  .objectives-list p {
     font-size: 8px;
   }
-  .current-stats > span {
-    width: 100%;
-    font-size: 7px;
+  .objectives-list > small {
+    font-size: 6px;
   }
-  .help-panel {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    margin: 20px 4%;
-    padding: 24px;
+  .dialogue-modal {
+    max-width: 570px;
   }
-  .help-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .help-grid b {
-    font-size: 9px;
-  }
-  .help-grid p {
-    font-size: 10px;
-  }
-  .help-panel h2 {
-    font-size: 31px;
-  }
-  .small-panel {
-    top: 5%;
-    padding: 25px;
-  }
-  .small-panel h2 {
-    font-size: 34px;
-  }
-  .settings-row {
-    align-items: start;
-  }
-  .settings-row h3 {
-    font-size: 13px;
-  }
-  .settings-row p {
-    font-size: 10px;
-  }
-  .settings-row .compact {
-    font-size: 7px;
-    padding: 9px;
-  }
-  .result-panel {
-    left: 7%;
-    right: 7%;
-    top: 6%;
-  }
-  .result-panel h2 {
-    font-size: 59px;
-  }
-  .result-panel .eyebrow {
-    font-size: 7px;
-  }
-  .result-stats {
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  .result-stats b {
-    font-size: 23px;
-  }
-  .result-stats small {
-    font-size: 7px;
-  }
-  .result-panel > p {
-    font-size: 12px;
-  }
-  .result-panel .reward-detail {
-    font-size: 9px;
-  }
-  .result-panel .button {
-    font-size: 8px;
-    padding: 12px;
-    min-height: 42px;
-  }
-  [data-screen='fight'] .rotate-hint {
+}
+@media (orientation: portrait) and (max-width: 950px) {
+  [data-playing='true'] .rotate-prompt {
     display: flex;
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: 50;
+    z-index: 30;
+    background: #244d3f;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 35px;
+    padding: 40px;
     text-align: center;
-    background: #f6f2e7;
   }
-  [data-screen='fight'] .rotate-hint > span {
-    font-size: 80px;
-    color: #d08a48;
-    margin-bottom: 22px;
+  .rotate-prompt > span {
+    font-size: 86px;
+    color: #e8c781;
   }
-  [data-screen='fight'] .rotate-hint > b {
-    font-size: 25px;
-    letter-spacing: -0.8px;
+  .rotate-prompt h2 {
+    font-size: 32px;
+    margin: 24px 0 12px;
   }
-  [data-screen='fight'] .rotate-hint p {
-    font-size: 14px;
+  .rotate-prompt p {
+    font-size: 13px;
     line-height: 1.8;
-    color: #7b886d;
-    max-width: 270px;
+    color: #b4c49f;
+    max-width: 260px;
+  }
+  .game-logo {
+    top: 8%;
+    left: 8%;
+  }
+  .game-logo > span {
+    font-size: 11px;
+  }
+  .game-logo small {
+    font-size: 5px;
+  }
+  .title-card {
+    left: 8%;
+    right: 8%;
+    top: 29%;
+  }
+  h1 {
+    font-size: 59px;
+    letter-spacing: -2px;
+  }
+  .title-card > .tag {
+    font-size: 7px;
+  }
+  .title-card > p {
+    font-size: 12px;
+  }
+  .big-play {
+    font-size: 9px;
+    padding: 15px 17px;
+    gap: 13px;
+    min-height: 49px;
+  }
+  .save-note {
+    font-size: 7px;
+    flex-wrap: wrap;
+  }
+  .world-stamp {
+    right: 9%;
+    bottom: 9%;
+    font-size: 7px;
+  }
+  .world-stamp small {
+    font-size: 8px;
+  }
+  .modal {
+    max-width: 94vw;
+    padding: 25px;
+  }
+  .guide-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .guide-grid b {
+    font-size: 8px;
+  }
+  .guide-grid p {
+    font-size: 10px;
+  }
+  .modal h2 {
+    font-size: 29px;
+  }
+  .compact-modal {
+    width: 94vw;
+  }
+  .settings-row {
+    gap: 12px;
+  }
+  .settings-row p {
+    font-size: 9px;
+  }
+  .settings-row b {
+    font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
+    animation: none !important;
     transition: none !important;
   }
-}
-
-/* Keep the fighter label clear of the rooster silhouette. */
-@media (min-width: 901px) {
-  .hero-caption {
-    top: 18%;
-  }
-}
-@media (max-height: 600px) and (orientation: landscape) {
-  .hero-caption {
-    left: 53%;
-    top: 7%;
-  }
-  .hero-caption > span:last-child {
-    display: none;
-  }
-  .shop {
-    top: 3%;
-    padding: 14px;
-  }
-  .shop .panel-heading {
-    margin-bottom: 10px;
-  }
-  .shop .upgrade-card {
-    padding: 11px;
-  }
-  .shop .current-stats {
-    padding-top: 11px;
-  }
-  .combat-buttons button > b {
-    font-size: 8px;
-    letter-spacing: 0.35px;
-  }
-  .combat-buttons button > small {
-    font-size: 7px;
-  }
-  .hero .button {
-    font-size: 9px;
-  }
-  .hero .text-button {
-    font-size: 9px;
-  }
-}
-@media (max-width: 740px) and (orientation: landscape) {
-  .hero .button {
-    font-size: 8px;
-  }
-  .combat-buttons button > b {
-    font-size: 7px;
-  }
-  .combat-buttons button > small {
-    font-size: 6px;
+  #toast.visible {
+    opacity: 1;
   }
 }

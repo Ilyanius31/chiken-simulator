@@ -15,36 +15,14 @@ export function purchase(p: Progress, key: UpgradeKind): boolean {
   p.upgrades[key]++;
   return true;
 }
+export function awardEggs(p: Progress, amount: number): void {
+  if (!Number.isInteger(amount) || amount <= 0) return;
+  p.eggs += amount;
+  p.world.earned += amount;
+}
 export function claimEgg(p: Progress, now: number): boolean {
   if (now < p.eggReadyAt) return false;
-  p.eggs++;
+  awardEggs(p, 1);
   p.eggReadyAt = now + playerStats(p).eggCooldown * 1000;
   return true;
-}
-export function reward(
-  win: boolean,
-  seconds: number,
-  healthRatio: number,
-  enemyEggs: number,
-): number {
-  return win ? 3 + (seconds < 45 ? 1 : 0) + (healthRatio >= 0.65 ? 1 : 0) + enemyEggs : 0;
-}
-export function finishFight(
-  p: Progress,
-  win: boolean,
-  seconds: number,
-  healthRatio: number,
-  enemyEggs: number,
-  combo: number,
-): number {
-  const amount = reward(win, seconds, healthRatio, enemyEggs);
-  p.eggs += amount;
-  p.bestCombo = Math.max(p.bestCombo, combo);
-  if (win) {
-    p.wins++;
-    p.stage++;
-    p.unlocked = Math.min(3, Math.max(p.unlocked, p.stage + 1));
-    p.bestTime = p.bestTime === null ? seconds : Math.min(p.bestTime, seconds);
-  } else p.losses++;
-  return amount;
 }

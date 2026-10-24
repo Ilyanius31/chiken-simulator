@@ -1,21 +1,22 @@
-import { ATTACKS, BALANCE, OPPONENTS, type AttackKind } from './config';
-import type { Progress } from './save';
-import { playerStats } from './economy';
+import { ATTACKS, BALANCE, type AttackKind } from './config';
+import { distance, moveWithCollision } from '../world/collision';
+import type { Vec, WorldObject } from '../world/map';
 export interface Attack {
   kind: AttackKind;
   time: number;
-  hit: boolean;
+  hits: Set<string>;
+  angle: number;
 }
-export interface Fighter {
-  x: number;
+export interface Fighter extends Vec {
+  id: string;
   hp: number;
   maxHp: number;
   stamina: number;
   maxStamina: number;
   power: number;
   speed: number;
-  facing: 1 | -1;
-  move: number;
+  angle: number;
+  moving: boolean;
   blocking: boolean;
   blockLock: number;
   invulnerable: number;
@@ -28,43 +29,40 @@ export interface Fighter {
   comboTime: number;
   lastKind: AttackKind | null;
 }
-export interface HitEvent {
-  x: number;
-  damage: number;
-  blocked: boolean;
-  combo: number;
-  strong: boolean;
-  player: boolean;
-}
-export const makeFighter = (
+export function makeFighter(
+  id: string,
   x: number,
-  hp: number,
-  stamina: number,
-  power: number,
-  speed: number,
-  facing: 1 | -1,
-): Fighter => ({
-  x,
-  hp,
-  maxHp: hp,
-  stamina,
-  maxStamina: stamina,
-  power,
-  speed,
-  facing,
-  move: 0,
-  blocking: false,
-  blockLock: 0,
-  invulnerable: 0,
-  stun: 0,
-  hurt: 0,
-  lay: 0,
-  attack: null,
-  cooldowns: { peck: 0, wing: 0, kick: 0 },
-  combo: 0,
-  comboTime: 0,
-  lastKind: null,
-});
+  y: number,
+  hp = 200,
+  stamina = 100,
+  power = 1,
+  speed = BALANCE.speed,
+): Fighter {
+  return {
+    id,
+    x,
+    y,
+    hp,
+    maxHp: hp,
+    stamina,
+    maxStamina: stamina,
+    power,
+    speed,
+    angle: Math.PI / 2,
+    moving: false,
+    blocking: false,
+    blockLock: 0,
+    invulnerable: 0,
+    stun: 0,
+    hurt: 0,
+    lay: 0,
+    attack: null,
+    cooldowns: { peck: 0, wing: 0, kick: 0 },
+    combo: 0,
+    comboTime: 0,
+    lastKind: null,
+  };
+}
 export function damageFor(kind: AttackKind, power: number, blocked: boolean, combo = 1): number {
   return Math.max(
     1,
@@ -90,25 +88,25 @@ export function startAttack(f: Fighter, kind: AttackKind): boolean {
     return false;
   f.stamina -= a.cost;
   f.cooldowns[kind] = a.cooldown;
-  f.attack = { kind, time: 0, hit: false };
+  f.attack = { kind, time: 0, hits: new Set(), angle: f.angle };
   return true;
 }
-export function setBlock(f: Fighter, requested: boolean): void {
+export function setBlock(f: Fighter, request: boolean): void {
   f.blocking =
-    requested &&
+    request &&
     f.hp > 0 &&
     !f.attack &&
-    f.stun <= 0 &&
     f.lay <= 0 &&
+    f.stun <= 0 &&
     f.blockLock <= 0 &&
     f.stamina > 4;
 }
-export function updateFighter(f: Fighter, dt: number): void {
+export function tickFighter(f: Fighter, dt: number): void {
   for (const key of Object.keys(f.cooldowns) as AttackKind[])
     f.cooldowns[key] = Math.max(0, f.cooldowns[key] - dt);
   for (const key of ['invulnerable', 'stun', 'hurt', 'lay', 'blockLock', 'comboTime'] as const)
     f[key] = Math.max(0, f[key] - dt);
-  if (!f.comboTime) {
+  if (f.comboTime === 0) {
     f.combo = 0;
     f.lastKind = null;
   }
@@ -116,78 +114,109 @@ export function updateFighter(f: Fighter, dt: number): void {
     f.stamina = Math.max(0, f.stamina - BALANCE.blockDrain * dt);
     if (f.stamina <= 4) {
       f.blocking = false;
-      f.blockLock = 1.1;
+      f.blockLock = 1;
     }
-  } else f.stamina = Math.min(f.maxStamina, f.stamina + BALANCE.regen * (f.attack ? 0.25 : 1) * dt);
-  if (f.attack) f.attack.time += dt;
-  if (f.hp > 0 && f.stun <= 0 && f.lay <= 0)
-    f.x += f.move * f.speed * (f.attack ? 0.26 : f.blocking ? 0.35 : 1) * dt;
-  f.x = Math.max(70, Math.min(1130, f.x));
+  } else f.stamina = Math.min(f.maxStamina, f.stamina + BALANCE.regen * (f.attack ? 0.4 : 1) * dt);
+  if (f.attack) {
+    f.attack.time += dt;
+    const cfg = ATTACKS[f.attack.kind];
+    if (f.attack.time > cfg.windup + cfg.active + cfg.recovery) f.attack = null;
+  }
 }
-export function resolveHit(attacker: Fighter, target: Fighter, player: boolean): HitEvent | null {
-  const a = attacker.attack;
-  if (!a || a.hit || attacker.hp <= 0 || target.hp <= 0) return null;
-  const cfg = ATTACKS[a.kind];
-  if (
-    a.time < cfg.windup ||
-    a.time > cfg.windup + cfg.active ||
-    target.invulnerable > 0 ||
-    Math.abs(attacker.x - target.x) > cfg.range
-  )
+export function moveFighter(
+  f: Fighter,
+  input: Vec,
+  dt: number,
+  objects: WorldObject[],
+  inactive?: ReadonlySet<string>,
+): void {
+  const length = Math.hypot(input.x, input.y),
+    scale = Math.max(1, length);
+  f.moving = length > 0.05 && f.hp > 0 && f.stun <= 0 && f.lay <= 0;
+  if (!f.moving) return;
+  if (!f.attack) f.angle = Math.atan2(input.y, input.x);
+  const speed = f.speed * (f.blocking ? 0.45 : f.attack ? 0.65 : 1);
+  moveWithCollision(
+    f,
+    (input.x / scale) * speed * dt,
+    (input.y / scale) * speed * dt,
+    BALANCE.radius,
+    objects,
+    inactive,
+  );
+}
+export const angleDifference = (a: number, b: number) =>
+  Math.atan2(Math.sin(a - b), Math.cos(a - b));
+export function inAttackArc(a: Fighter, target: Vec, radius = 20): boolean {
+  if (!a.attack) return false;
+  const cfg = ATTACKS[a.attack.kind];
+  const d = distance(a, target);
+  return (
+    d <= cfg.range + radius &&
+    Math.abs(angleDifference(Math.atan2(target.y - a.y, target.x - a.x), a.attack.angle)) <=
+      cfg.arc / 2 + Math.asin(Math.min(1, radius / Math.max(1, d)))
+  );
+}
+export interface HitEvent extends Vec {
+  damage: number;
+  blocked: boolean;
+  kind: AttackKind;
+  combo: number;
+  targetId: string;
+}
+export function resolveHit(
+  a: Fighter,
+  b: Fighter,
+  objects: WorldObject[],
+  inactive?: ReadonlySet<string>,
+): HitEvent | null {
+  const attack = a.attack;
+  if (!attack || a.hp <= 0 || b.hp <= 0 || attack.hits.has(b.id) || b.invulnerable > 0) return null;
+  const cfg = ATTACKS[attack.kind];
+  if (attack.time < cfg.windup || attack.time > cfg.windup + cfg.active || !inAttackArc(a, b))
     return null;
-  a.hit = true;
-  attacker.combo =
-    attacker.comboTime > 0 && attacker.lastKind !== a.kind ? Math.min(4, attacker.combo + 1) : 1;
-  attacker.lastKind = a.kind;
-  attacker.comboTime = BALANCE.comboWindow;
-  const blocked = target.blocking && target.stamina >= 8;
-  const damage = damageFor(a.kind, attacker.power, blocked, attacker.combo);
-  target.hp = Math.max(0, target.hp - damage);
-  target.hurt = 0.22;
-  target.invulnerable = 0.18;
-  target.stun = blocked ? 0.06 : a.kind === 'kick' ? 0.32 : 0.13;
+  attack.hits.add(b.id);
+  a.combo = a.comboTime > 0 && a.lastKind !== attack.kind ? Math.min(4, a.combo + 1) : 1;
+  a.lastKind = attack.kind;
+  a.comboTime = BALANCE.comboWindow;
+  const blocked = b.blocking && b.stamina >= 8;
+  const damage = damageFor(attack.kind, a.power, blocked, a.combo);
+  b.hp = Math.max(0, b.hp - damage);
+  b.hurt = 0.22;
+  b.invulnerable = 0.38;
+  b.stun = blocked ? 0.04 : 0.12;
   if (blocked) {
-    target.stamina = Math.max(0, target.stamina - cfg.cost * 0.65);
-    if (target.stamina < 8) {
-      target.blockLock = 1.1;
-      target.blocking = false;
+    b.stamina = Math.max(0, b.stamina - cfg.cost * 0.6);
+    if (b.stamina < 8) {
+      b.blocking = false;
+      b.blockLock = 1;
     }
   } else {
-    target.attack = null;
-    target.blocking = false;
+    b.attack = null;
+    b.blocking = false;
   }
-  target.x = Math.max(
-    70,
-    Math.min(1130, target.x + attacker.facing * cfg.knockback * (blocked ? 0.3 : 1)),
+  const angle = Math.atan2(b.y - a.y, b.x - a.x);
+  moveWithCollision(
+    b,
+    Math.cos(angle) * cfg.knockback * (blocked ? 0.2 : 1),
+    Math.sin(angle) * cfg.knockback * (blocked ? 0.2 : 1),
+    BALANCE.radius,
+    objects,
+    inactive,
   );
-  return { x: target.x, damage, blocked, combo: attacker.combo, strong: a.kind === 'kick', player };
+  return { x: b.x, y: b.y, damage, blocked, kind: attack.kind, combo: a.combo, targetId: b.id };
 }
-export function endAttack(f: Fighter): void {
-  if (f.attack) {
-    const cfg = ATTACKS[f.attack.kind];
-    if (f.attack.time >= cfg.windup + cfg.active + cfg.recovery) f.attack = null;
-  }
-}
-export function separate(a: Fighter, b: Fighter): void {
-  // Side order is invariant, even at a wall or after a large movement step.
-  const gap = BALANCE.radius * 2;
-  if (b.x - a.x < gap) {
-    const center = Math.max(70 + gap / 2, Math.min(1130 - gap / 2, (a.x + b.x) / 2));
-    a.x = center - gap / 2;
-    b.x = center + gap / 2;
-  }
-  a.facing = 1;
-  b.facing = -1;
-}
-export const outcome = (player: Fighter, enemy: Fighter): 'win' | 'loss' | null =>
-  player.hp <= 0 ? 'loss' : enemy.hp <= 0 ? 'win' : null;
-export function createCombat(p: Progress): { player: Fighter; enemy: Fighter } {
-  const stats = playerStats(p),
-    index = p.stage % 3,
-    enemy = OPPONENTS[index],
-    scale = 1 + Math.floor(p.stage / 3) * 0.08;
-  return {
-    player: makeFighter(320, stats.maxHp, stats.maxStamina, stats.power, BALANCE.speed, 1),
-    enemy: makeFighter(870, enemy.hp * scale, 100, enemy.power * scale, enemy.speed, -1),
-  };
+export function separateFighters(
+  a: Fighter,
+  b: Fighter,
+  objects: WorldObject[],
+  inactive?: ReadonlySet<string>,
+): void {
+  const d = distance(a, b),
+    gap = BALANCE.radius * 2;
+  if (d >= gap) return;
+  const angle = d < 0.01 ? 0 : Math.atan2(b.y - a.y, b.x - a.x),
+    amount = (gap - d) / 2;
+  moveWithCollision(a, -Math.cos(angle) * amount, -Math.sin(angle) * amount, 20, objects, inactive);
+  moveWithCollision(b, Math.cos(angle) * amount, Math.sin(angle) * amount, 20, objects, inactive);
 }

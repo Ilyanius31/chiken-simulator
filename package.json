@@ -1,6 +1,6 @@
 {
   "name": "chicken-simulator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "test:browser": "playwright test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "preview:pack": "node scripts/package-preview.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
