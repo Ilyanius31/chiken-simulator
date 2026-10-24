@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import { ATTACKS, ENEMIES, type AttackKind, type UpgradeKind } from '../core/config';
 import { createEnemy, updateAI, type Enemy } from '../core/ai';
 import {
@@ -137,7 +138,7 @@ export class WorldSimulation {
       boss.attack = null;
       Object.assign(boss, boss.home);
       this.bossActive = false;
-      this.emit('notice', 'Challenge paused. Ring the arena bell to try again.');
+      this.emit('notice', t.notices.withdraw);
     }
     for (const enemy of this.enemies) {
       if (!enemy.active) continue;
@@ -173,7 +174,7 @@ export class WorldSimulation {
       if (this.player.hp <= 0) {
         this.progress.losses++;
         this.bossActive = false;
-        this.emit('defeat', 'A bad feather day. Your eggs and upgrades are safe.');
+        this.emit('defeat', t.notices.defeat);
         this.dirty = true;
         break;
       }
@@ -192,11 +193,11 @@ export class WorldSimulation {
       (e.kind === 'champion' && this.progress.world.champion ? 10 : ENEMIES[e.kind].reward) +
       e.bonusEggs;
     awardEggs(this.progress, amount);
-    this.emit('egg', `+${amount} eggs`, e, amount);
+    this.emit('egg', t.notices.reward(amount), e, amount);
     if (e.kind === 'champion') {
       this.progress.world.champion = true;
       this.bossActive = false;
-      this.emit('victory', 'The Golden Comb is yours! The Roostlands salute you.');
+      this.emit('victory', t.notices.victory);
     }
     this.dirty = true;
   }
@@ -234,7 +235,7 @@ export class WorldSimulation {
       this.events.push({ type: 'hit', ...hit, hit });
       if (object.kind === 'crate') {
         const amount = collectObject(object, this.progress, now);
-        this.emit('egg', amount ? `+${amount} eggs` : 'Just packing straw!', object, amount);
+        this.emit('egg', amount ? t.notices.reward(amount) : t.notices.straw, object, amount);
         this.dirty = true;
       }
     }
@@ -249,17 +250,17 @@ export class WorldSimulation {
       if (!available(o, this.progress, now)) {
         this.emit(
           'notice',
-          `Fresh eggs in ${Math.ceil((this.progress.world.objects[o.id] - now) / 1000)}s.`,
+          t.notices.nestWait(Math.ceil((this.progress.world.objects[o.id] - now) / 1000)),
         );
         return;
       }
       const amount = collectObject(o, this.progress, now);
-      this.emit('egg', amount ? `+${amount} eggs` : 'Just straw. The crate is cleared.', o, amount);
+      this.emit('egg', amount ? t.notices.reward(amount) : t.notices.straw, o, amount);
       this.dirty = true;
     } else if (o.kind === 'shop') this.emit('shop');
     else if (o.kind === 'bell') {
       if (this.bossActive) {
-        this.emit('notice', 'The Champion is already waiting in the ring.');
+        this.emit('notice', t.notices.bossWaiting);
         return;
       }
       const boss = this.enemies.find((e) => e.kind === 'champion')!;
@@ -267,7 +268,7 @@ export class WorldSimulation {
       boss.active = true;
       boss.state = 'chase';
       this.bossActive = true;
-      this.emit('notice', 'LORD CLUCKINGTON · Challenge begun!');
+      this.emit('notice', t.notices.bossStart);
     } else {
       if (o.id === 'pip') {
         this.progress.world.talked = true;
@@ -280,12 +281,12 @@ export class WorldSimulation {
     const p = this.player;
     if (p.hp <= 0 || p.lay > 0 || p.attack || p.stun > 0) return false;
     if (!claimEgg(this.progress, now)) {
-      this.emit('notice', 'Good eggs take time. Check the cooldown.');
+      this.emit('notice', t.notices.eggWait);
       return false;
     }
     p.lay = 1.15;
     p.blocking = false;
-    this.emit('egg', '+1 freshly laid egg', p, 1);
+    this.emit('egg', t.notices.freshEgg, p, 1);
     this.dirty = true;
     return true;
   }

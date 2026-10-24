@@ -1,7 +1,7 @@
 name: Test, preview and deploy Chicken Simulator
 on:
   push:
-    branches: [main, master, feat/top-down-world-v0.2]
+    branches: [main, master, feat/golden-egg-heist-v0.3]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -30,9 +30,9 @@ jobs:
       - name: Downloadable review build
         uses: actions/upload-artifact@v4
         with:
-          name: chicken-simulator-v0.2-preview
+          name: chicken-simulator-v0.3-preview
           path: |
-            artifacts/chicken-simulator-v0.2.html
+            artifacts/*.html
             dist/
           retention-days: 14
       - uses: actions/upload-pages-artifact@v3

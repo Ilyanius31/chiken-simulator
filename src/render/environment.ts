@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import type { WorldObject } from '../world/map';
 export function drawObject(
   c: CanvasRenderingContext2D,
@@ -115,7 +116,7 @@ export function drawObject(
     c.fillStyle = '#fef2d5';
     c.font = 'bold 10px system-ui';
     c.textAlign = 'center';
-    c.fillText('FEATHER FORGE', 0, -59);
+    c.fillText(t.objects.shop, 0, -59, 140);
   } else if (kind === 'fence') {
     const w = o.width ?? 50;
     ellipse(0, 7, w / 2 + 4, 9, '#33533325');

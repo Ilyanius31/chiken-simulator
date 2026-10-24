@@ -1,3 +1,4 @@
+import { t } from '../localization';
 export interface Vec {
   x: number;
   y: number;
@@ -53,8 +54,8 @@ export const ZONES: {
 }[] = [
   {
     id: 'village',
-    name: 'Chicken Village',
-    subtitle: 'Home is where the hen is.',
+    name: t.zones.village.name,
+    subtitle: t.zones.village.subtitle,
     color: '#9acb7a',
     x: 0,
     y: 0,
@@ -63,8 +64,8 @@ export const ZONES: {
   },
   {
     id: 'fields',
-    name: 'Sunny Fields',
-    subtitle: 'A little sunshine. A little trouble.',
+    name: t.zones.fields.name,
+    subtitle: t.zones.fields.subtitle,
     color: '#bfce78',
     x: 1536,
     y: 0,
@@ -73,8 +74,8 @@ export const ZONES: {
   },
   {
     id: 'forest',
-    name: 'Dark Forest',
-    subtitle: 'Keep your friends close. Your eggs closer.',
+    name: t.zones.forest.name,
+    subtitle: t.zones.forest.subtitle,
     color: '#618b75',
     x: 0,
     y: 1152,
@@ -83,8 +84,8 @@ export const ZONES: {
   },
   {
     id: 'arena',
-    name: 'Champion’s Arena',
-    subtitle: 'One yard. One very big ego.',
+    name: t.zones.arena.name,
+    subtitle: t.zones.arena.subtitle,
     color: '#bbbf88',
     x: 1536,
     y: 1152,
@@ -145,38 +146,33 @@ export function createMap(): WorldObject[] {
     width: 146,
     height: 102,
     radius: 75,
-    label: 'The Feather Forge',
-    dialogue: 'A better bird, one egg at a time.',
+    label: t.objects.shop,
+    dialogue: t.objects.shopMotto,
   });
   add('npc', 800, 704, {
     id: 'pip',
-    label: 'Pip · village guide',
-    dialogue:
-      'Welcome to the Roostlands! Move with the left stick. Hold J, K or L to practice attacks. Follow the golden path EAST to Sunny Fields. Come home to recover health. Try the training dummy north-east of me!',
+    label: t.objects.pip,
+    dialogue: t.dialogue.pip,
   });
   add('npc', 440, 810, {
-    label: 'Mabel',
-    dialogue:
-      'Roosters laying eggs? In this economy? Use LAY EGG every 30 seconds. Nests refill after a minute. Spend your eggs at the striped market stall!',
+    label: t.objects.mabel,
+    dialogue: t.dialogue.mabel,
   });
   add('dummy', 980, 570, {
     id: 'dummy',
     solid: true,
     radius: 24,
-    label: 'Training dummy',
-    dialogue:
-      'Face me and try PECK, WING SLAP and POWER KICK. Alternate attacks for a combo. The blue shield is BLOCK. Release it to recover stamina.',
+    label: t.objects.dummy,
+    dialogue: t.dialogue.dummy,
   });
-  add('nest', 450, 585, { id: 'village-nest', label: 'Village nest' });
+  add('nest', 450, 585, { id: 'village-nest', label: t.objects.villageNest });
   add('sign', 1280, 620, {
-    label: 'Trail signs',
-    dialogue:
-      'EAST → Sunny Fields · rookies and hidden eggs. SOUTH ↓ Dark Forest · stronger roosters. Champion’s Arena lies in the south-east. Ring its bell when you are ready.',
+    label: t.objects.trailSign,
+    dialogue: t.dialogue.trails,
   });
   add('sign', 760, 1040, {
-    label: 'Forest trail',
-    dialogue:
-      'SOUTH ↓ Dark Forest. Stay on the winding paths. Rocks and trees block sight: use them to break pursuit. Watch for Bramble’s windup!',
+    label: t.objects.forestTrail,
+    dialogue: t.dialogue.forest,
   });
   for (let x = 260; x <= 1060; x += 64) {
     if (x < 510 || x > 660)
@@ -190,7 +186,7 @@ export function createMap(): WorldObject[] {
     [1040, 1510],
     [330, 1890],
   ])
-    add('nest', x, y, { label: 'Wild egg nest' });
+    add('nest', x, y, { label: t.objects.nest });
   for (const [x, y] of [
     [1650, 730],
     [1960, 420],
@@ -199,7 +195,7 @@ export function createMap(): WorldObject[] {
     [820, 1460],
     [1210, 1920],
   ])
-    add('crate', x, y, { solid: true, radius: 23, label: 'Wooden crate' });
+    add('crate', x, y, { solid: true, radius: 23, label: t.objects.crate });
   for (const [x, y] of [
     [2800, 260],
     [1420, 1000],
@@ -207,7 +203,7 @@ export function createMap(): WorldObject[] {
     [450, 2110],
     [1400, 2080],
   ])
-    add('stash', x, y, { label: 'Hidden egg stash' });
+    add('stash', x, y, { label: t.objects.stash });
   for (const [x, y] of [
     [1830, 350],
     [2150, 500],
@@ -223,14 +219,13 @@ export function createMap(): WorldObject[] {
   ])
     add('log', x, y, { solid: true, width: 100, height: 34, radius: 45 });
   add('sign', 1640, 1740, {
-    label: 'Arena approach',
-    dialogue:
-      'EAST → Champion’s Arena. Ring the bell to challenge Lord Cluckington. Step out of the arena zone to withdraw. First victory: 25 eggs and the Golden Comb!',
+    label: t.objects.arenaTrail,
+    dialogue: t.dialogue.arena,
   });
   add('bell', 2304, 1480, {
     id: 'arena-bell',
-    label: 'Challenge bell',
-    dialogue: 'Lord Cluckington awaits. Ring the bell to begin!',
+    label: t.objects.bell,
+    dialogue: t.dialogue.bell,
   });
   for (let i = 0; i < 24; i++) {
     const a = (i * Math.PI) / 12;
@@ -243,12 +238,8 @@ export function createMap(): WorldObject[] {
     });
     if (i % 2 === 0)
       add('npc', 2304 + Math.cos(a) * 400, 1830 + Math.sin(a) * 365, {
-        label: 'Arena spectator',
-        dialogue: [
-          'My money is on the one with feathers.',
-          'Go on! Show him your pecking order.',
-          'We paid three eggs for these seats.',
-        ][i % 3],
+        label: t.objects.spectator,
+        dialogue: t.dialogue.spectators[i % 3],
       });
   }
   for (const x of [2110, 2498]) add('banner', x, 1490, { solid: true, radius: 13 });

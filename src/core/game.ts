@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import { SaveStore, type Progress, type StorageLike } from './save';
 import type { AttackKind, UpgradeKind } from './config';
 import { WorldSimulation } from '../world/simulation';
@@ -126,7 +127,7 @@ export class Game {
       if (this.world.buy(action.slice(4) as UpgradeKind)) {
         this.audio.play('buy');
         this.open('shop');
-        this.view.toast('UPGRADED! A little more legendary.');
+        this.view.toast(t.notices.upgrade);
       }
       return;
     }

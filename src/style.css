@@ -1814,3 +1814,87 @@ h1 em {
     opacity: 1;
   }
 }
+
+/* Cyrillic copy needs less tracking and room to wrap on small landscape screens. */
+:lang(ru) .tag,
+:lang(ru) .game-logo > span,
+:lang(ru) .ability > b,
+:lang(ru) .utility,
+:lang(ru) .button,
+:lang(ru) .zone-label {
+  letter-spacing: 0.3px;
+}
+:lang(ru) .title-card {
+  width: min(530px, 62vw);
+}
+:lang(ru) h1 {
+  font-size: clamp(36px, 4.6vw, 66px);
+  letter-spacing: -1.5px;
+}
+:lang(ru) .save-note,
+:lang(ru) .stats-strip {
+  flex-wrap: wrap;
+}
+:lang(ru) .utility {
+  min-height: 40px;
+}
+:lang(ru) .ability > b {
+  font-size: 9px;
+}
+:lang(ru) .upgrade-card h3,
+:lang(ru) .upgrade-top small {
+  overflow-wrap: anywhere;
+}
+:lang(ru) .zone-label {
+  max-width: 46%;
+  text-align: center;
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  :lang(ru) .title-card {
+    top: 24%;
+    width: 55vw;
+  }
+  :lang(ru) h1 {
+    font-size: clamp(31px, 4.5vw, 43px);
+  }
+  :lang(ru) .title-card > p {
+    max-width: 340px;
+    line-height: 1.5;
+  }
+  :lang(ru) .utility {
+    font-size: 9px;
+    padding-inline: 9px;
+  }
+  :lang(ru) .utility kbd {
+    display: none;
+  }
+  :lang(ru) .upgrade-card h3 {
+    min-height: 24px;
+    font-size: 10px;
+  }
+  :lang(ru) .stats-strip {
+    gap: 8px 16px;
+  }
+  :lang(ru) .guide-grid {
+    gap: 12px;
+  }
+  :lang(ru) .guide-grid p {
+    line-height: 1.45;
+  }
+}
+:lang(ru) .modal {
+  max-width: min(940px, calc(100vw - 48px));
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  :lang(ru) .modal {
+    max-width: calc(100vw - 28px);
+  }
+}
+@media (max-width: 740px) and (orientation: landscape) {
+  :lang(ru) .guide-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  :lang(ru) .guide-grid p {
+    font-size: 10px;
+  }
+}
