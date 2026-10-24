@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import type { Progress } from '../core/save';
 import { awardEggs } from '../core/economy';
 import { distance } from './collision';
@@ -35,29 +36,29 @@ export function collectObject(o: WorldObject, p: Progress, now: number): number 
 }
 export function objectives(p: Progress): { label: string; done: boolean; target: Vec }[] {
   return [
-    { label: 'Meet Pip in Chicken Village', done: p.world.talked, target: { x: 800, y: 704 } },
+    { label: t.objectives.meet, done: p.world.talked, target: { x: 800, y: 704 } },
     {
-      label: 'Defeat a Rookie in Sunny Fields',
+      label: t.objectives.rookie,
       done: p.world.rookies > 0,
       target: { x: 1792, y: 672 },
     },
     {
-      label: `Collect 10 eggs · ${Math.min(10, p.world.earned)}/10`,
+      label: t.objectives.eggs(p.world.earned),
       done: p.world.earned >= 10,
       target: { x: 1750, y: 420 },
     },
     {
-      label: 'Buy an upgrade at the village market',
+      label: t.objectives.upgrade,
       done: Object.values(p.upgrades).some((x) => x > 0),
       target: { x: 576, y: 464 },
     },
     {
-      label: 'Follow the southern trail into Dark Forest',
+      label: t.objectives.forest,
       done: p.world.visited.includes('forest'),
       target: { x: 704, y: 1280 },
     },
     {
-      label: 'Ring the arena bell. Defeat the Champion!',
+      label: t.objectives.champion,
       done: p.world.champion,
       target: { x: 2304, y: 1480 },
     },

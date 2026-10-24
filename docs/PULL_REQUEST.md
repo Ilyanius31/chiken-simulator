@@ -1,35 +1,34 @@
-## Summary
+## Статус: черновик v0.3
 
-Replaces the side-view fighter with a playable, mobile-first top-down action RPG. This branch starts from v0.1 commit `e52501e`, so the PR includes the original project foundation even though `main` was still empty.
+Это первая, завершённая часть Milestone 3: русская локализация существующей игры. **Сюжет «Похищение золотого яйца», новые враги и новая способность ещё не реализованы.** Полученное задание обрывается на «discover clues, defeat enemies, and». PR оставлен черновиком до получения продолжения; не следует считать его готовым Milestone 3.
 
-## Gameplay changes
+Ветка `feat/golden-egg-heist-v0.3` создана от актуального `main`, коммит `f2878e8`, после объединения v0.2. Игровой мир и его механики сохранены.
 
-- Free 360° movement with a multitouch joystick, smooth bounded camera, directional peck/wing/kick attacks, block, stamina, combos, knockback and readable enemy attack arcs.
-- Combat takes place in the world. Rookie, Speedy, Bramble and Champion have distinct stats and behaviors, line-of-sight detection, obstacle navigation, retreat and egg drops.
-- Working nests, crates, training dummy, physical upgrade shop, NPCs, signs, hidden egg stashes and arena challenge bell.
-- Six objectives, a minimap/world atlas, safe-village healing, defeat recovery, an arena boss and the Golden Comb reward.
-- Original overhead character/environment art and procedural sounds. No external runtime assets, backend or paid services.
-- Reuses the upgrade/economy/audio foundation and safely migrates v0.1 eggs, upgrades, records and settings. The old save remains intact until an explicit reset.
+## Изменения
 
-## Map and zones
+- Русский язык по умолчанию: меню, HUD, магазин, настройки, справка, задания, карта, диалоги, имена, уведомления, победа/поражение, восстановление сохранений, доступность и надписи Canvas.
+- Общий словарь `src/localization/ru.ts`, типизированный вход локализации и параметризованные строки. Склонение «яйцо / яйца / яиц» через `Intl.PluralRules`.
+- Заголовок HTML, описание страницы и язык документа берутся из словаря через Vite.
+- Русская типографика и мобильные размеры кнопок; исправлена ширина справки и карты на узком экране. Для HUD добавлены доступные значения здоровья и выносливости.
+- Русская документация. Игровые идентификаторы, сохранения v2 и миграция v1 не изменены.
+- CI собирает новую ветку и предоставляет preview v0.3. Деплой основной игры остаётся привязанным к `main`.
 
-A continuous 3072×2304 world connects Chicken Village, Sunny Fields, Dark Forest and Champion’s Arena. Paths, buildings, fences, ponds, trees, rocks and logs provide recognizable routes and cover. Every zone is reachable without a loading or battle screen.
+## Проверки
 
-## Screenshots
+**Пройдены:** TypeScript strict, 49 модульных тестов, 5 браузерных сценариев (40,5 с), production build, упаковка preview и форматирование.
 
-Actual Chromium screenshots (implemented build):
+Результаты текущей реализации записаны в `docs/VALIDATION-v0.3.md`. Существующий сценарий прохождения проверяет деревню, четыре зоны, бой, покупку и победу над чемпионом. Дополнительный сценарий проверяет русские тексты, подписи доступности, Canvas и размеры окон на телефоне.
 
-![Chicken Village](https://raw.githubusercontent.com/Ilyanius31/chiken-simulator/feat/top-down-world-v0.2/docs/v02-village.png)
-![World atlas](https://raw.githubusercontent.com/Ilyanius31/chiken-simulator/feat/top-down-world-v0.2/docs/v02-map.png)
+## Что осталось для полного Milestone 3
 
-## Validation
+- Получить продолжение требований к истории.
+- Реализовать согласованных новых врагов и способность.
+- Добавить и проверить сюжетную цепочку, улики, развязку и сохранение её прогресса.
+- Повторить проверки полной версии и перевести этот PR из черновика в готовый к review.
 
-Passed: strict TypeScript, **37 unit tests**, **4 Playwright scenarios (36.1s)** including a full exploration/boss playthrough, production build and production-subpath browser smoke check. See `docs/VALIDATION.md` for evidence, review findings and limits of device emulation. CI repeats strict TypeScript, unit tests, formatting and production build before publishing artifacts or deploying.
+Физический Android не тестировался. Локальная сборка и Chromium не доказывают удобство управления на конкретном телефоне. PR не объединён; новая версия не опубликована поверх текущей игры.
 
-## Deployment status
+## Скриншоты
 
-Vite uses the verified `/chiken-simulator/` base. Every feature-branch push produces a downloadable review artifact with the static site and a self-contained HTML preview. Pages deployment runs only after merging to `main`/`master`; this PR does not merge itself or publish the feature branch over the main site. A public preview URL is not claimed.
-
-## Known limitations
-
-One compact authored world; no multiplayer, cloud save, crafting or offline service worker. Real Android thumb comfort, audio behavior and sustained device performance still need phone testing. Saves are browser/origin-specific. The downloadable HTML is a fallback artifact; opening local HTML depends on the Android browser/file handler.
+![Русское меню](https://raw.githubusercontent.com/Ilyanius31/chiken-simulator/feat/golden-egg-heist-v0.3/docs/v03-menu.png)
+![Магазин на телефоне](https://raw.githubusercontent.com/Ilyanius31/chiken-simulator/feat/golden-egg-heist-v0.3/docs/v03-shop.png)

@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import type { UpgradeKind } from './config';
 import { SPAWN, WORLD_HEIGHT, WORLD_WIDTH, type ZoneId } from '../world/map';
 export interface Progress {
@@ -116,17 +117,16 @@ export class SaveStore {
         if (version !== 1 && version !== 2) {
           if (key === SAVE_KEY) {
             this.protectedVersion = true;
-            this.warning = 'Newer save detected. Original progress is protected.';
+            this.warning = t.saves.future;
             return freshProgress();
           }
           continue;
         }
-        if (key.includes('backup')) this.warning = 'Progress recovered from your backup.';
-        if (version === 1)
-          this.warning = 'Your eggs and upgrades from v0.1 have moved into the Roostlands.';
+        if (key.includes('backup')) this.warning = t.saves.recovered;
+        if (version === 1) this.warning = t.saves.migrated;
         return validateProgress(parsed);
       } catch {
-        this.warning = 'Save unavailable or damaged. Using a healthy backup when available.';
+        this.warning = t.saves.damaged;
       }
     }
     return freshProgress();
@@ -146,7 +146,7 @@ export class SaveStore {
       this.storage.setItem(SAVE_KEY, JSON.stringify(p));
       return true;
     } catch {
-      this.warning = 'Storage is unavailable. Progress stays in this tab.';
+      this.warning = t.saves.unavailable;
       return false;
     }
   }

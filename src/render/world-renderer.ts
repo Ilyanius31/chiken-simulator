@@ -1,3 +1,4 @@
+import { t } from '../localization';
 import { Camera } from '../world/camera';
 import { WORLD_WIDTH, WORLD_HEIGHT, ZONES, PONDS, TILE, zoneAt, type Vec } from '../world/map';
 import { available, objectives } from '../world/interactions';
@@ -146,7 +147,7 @@ export class WorldRenderer {
         vx: 0,
         vy: -35,
         text: e.hit.blocked
-          ? `GUARD ${e.hit.damage}`
+          ? t.notices.guard(e.hit.damage)
           : `−${e.hit.damage}${e.hit.combo > 1 ? ` · ${e.hit.combo}×` : ''}`,
         color: e.hit.targetId === 'player' ? '#ffdac0' : '#fff5c7',
       });

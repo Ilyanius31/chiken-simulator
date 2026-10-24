@@ -1,65 +1,49 @@
-# Chicken Simulator v0.2 — The Roostlands
+# Симулятор курицы — подготовка v0.3
 
-**Small wings. Big world.** A top-down countryside action adventure for Android browsers. Explore, fight, collect questionable eggs, upgrade, and earn the Golden Comb.
+**Маленькие крылья. Большой мир.** Браузерное приключение с видом сверху: исследуйте окрестности, сражайтесь с петухами, собирайте яйца и улучшайте своего героя. Игра работает без установки, сервера и платных сервисов.
 
-The old side-view battle scene has been replaced completely. Movement, combat, loot and interaction now happen in one continuous world, with a smooth following camera and a multitouch joystick.
+Ветка `feat/golden-egg-heist-v0.3` создана от актуального `main` (`f2878e8`, после объединения PR #1). Уже реализована русская локализация существующей игры. Сюжетная кампания «Похищение золотого яйца», новые враги и новая способность пока не реализованы: полученное задание обрывается в разделе истории. Они не выдаются за готовые возможности этой промежуточной версии.
 
-![Chicken Village on a phone in landscape](docs/v02-village.png)
+## Что уже работает
 
-## The world
+- Непрерывный мир размером 3072×2304, движение в любом направлении и плавная камера.
+- Четыре связанные зоны: Куриная деревня, Солнечные поля, Тёмный лес и Арена чемпиона.
+- Удар клювом, удар крылом, мощный пинок, защита, выносливость, комбо, отбрасывание и предупреждения об атаках.
+- Новички, шустрые петухи, лесные забияки и чемпион с разными характеристиками и поведением.
+- Гнёзда, ящики, тайники, манекен, диалоги, указатели, физический магазин и колокол вызова босса.
+- Яйца как валюта, четыре направления улучшений, задания, миникарта и большая карта.
+- Процедурные рисунки и звуки, независимые сенсорные касания, сохранения в браузере.
+- Русские меню, диалоги, цели, уведомления, названия, подписи Canvas, сообщения сохранения и подписи доступности.
 
-| Zone             | What is actually playable                                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chicken Village  | Safe hub with houses, fences, Pip and Mabel, nests, the Feather Forge shop, signs, a training dummy and automatic health recovery.                         |
-| Sunny Fields     | Rookie and Speedy roosters, hay bales, crates, wild nests, trees, a pond and hidden egg stashes. Follow the eastern path.                                  |
-| Dark Forest      | Dense groves, mushrooms, rocks, fallen logs, stronger Bramble roosters and hidden rewards. Take the southern village path.                                 |
-| Champion’s Arena | A ring, banners, spectators and a challenge bell. Ring it to fight Lord Cluckington directly on the map. First victory awards 25 eggs and the Golden Comb. |
+![Русский интерфейс на телефоне](docs/v03-menu.png)
 
-The world is 3072×2304 units (48×36 navigation tiles). All areas are connected by walkable paths. Obstacles block movement and sight; grass, flowers and mushrooms are decoration. Enemies detect through clear sight, follow paths around cover, occasionally reposition, and return home if pulled too far. The village is safe. Enemy respawns happen after 75 seconds, only away from the player.
+[Отчёт о проверках промежуточной версии](docs/VALIDATION-v0.3.md).
 
-## How to play
+## Управление
 
-| Action             | Phone                          | Keyboard          |
-| ------------------ | ------------------------------ | ----------------- |
-| Move freely        | Left joystick                  | WASD / arrow keys |
-| Peck               | PECK                           | J                 |
-| Wing slap          | WING                           | K                 |
-| Power kick         | KICK                           | L                 |
-| Block              | Hold BLOCK                     | Hold Space        |
-| Lay egg            | LAY EGG                        | V                 |
-| Interact           | INTERACT near a glowing object | E                 |
-| Map and objectives | Minimap                        | M                 |
-| Pause              | Pause button                   | Escape            |
+Играйте на телефоне в горизонтальной ориентации. Слева находится джойстик, справа — действия. Движение и атаки поддерживают одновременные касания. При смене приложения игра ставится на паузу.
 
-Face enemies to attack. There is modest forward target assistance, never a turn-around auto-hit. Peck is fast and short; wing slap has a wide arc; kick has a visible windup and strong knockback. Alternate attacks for a combo. Watch red enemy arcs and walk out of them. Blocking absorbs 78% of damage but drains stamina. Release attacks and block to recover. Enemies cannot hit through solid cover.
+| Действие          | Телефон                    | Клавиатура       |
+| ----------------- | -------------------------- | ---------------- |
+| Движение          | Левый джойстик             | WASD или стрелки |
+| Удар клювом       | Клюв                       | J                |
+| Удар крылом       | Крыло                      | K                |
+| Мощный пинок      | Пинок                      | L                |
+| Защита            | Удерживать «Защита»        | Пробел           |
+| Снести яйцо       | Снести яйцо                | V                |
+| Взаимодействовать | Действие рядом с предметом | E                |
+| Карта и задания   | Миникарта                  | M                |
+| Пауза             | Кнопка паузы               | Escape           |
 
-Meet Pip, defeat a Rookie, collect 10 eggs, buy an upgrade, enter the forest, and challenge the Champion. The gold minimap marker shows your next objective; open the atlas to see all six goals and four zones.
+Поворачивайтесь к цели перед ударом. Красная дуга предупреждает об атаке противника: отойдите или защититесь. Чередуйте удары для комбо и делайте паузы для восстановления выносливости. В безопасной деревне восстанавливается здоровье.
 
-Nests grant 3 eggs and refill after 60 seconds. Crates can be opened or struck and may contain 2 eggs. Hidden stashes grant 5 eggs once. Enemy rewards range from 3 to 5 eggs; the Champion grants 25 on first victory and 10 on later challenges. Lay Egg grants one egg every 30 seconds, improved to 10 seconds at maximum production level. Rewards are credited and saved immediately, then shown as animated world eggs, so switching apps cannot lose an award. Laying briefly prevents attacking, blocking and movement. Rival eggs add to their defeat reward.
+Гнездо даёт три яйца и пополняется через минуту. Ящики можно открыть или разбить; иногда внутри два яйца. Тайники содержат пять яиц. Петух может снести яйцо раз в 30 секунд, но во время кладки уязвим. Награда сохраняется сразу, после чего отображается анимация яйца.
 
-Visit the striped **Feather Forge** stall in Chicken Village to spend eggs. Attack, max health, stamina and production have five levels and rising costs. Upgrades affect current gameplay immediately. Defeat returns you to the village without taking eggs or upgrades. Leaving the arena zone withdraws the boss challenge so you can heal and try again.
+В деревенской «Перьевой кузнице» улучшаются сила атаки, здоровье, выносливость и производство яиц. За первую победу над чемпионом выдаются 25 яиц и Золотой гребень. Поражение не отнимает валюту и улучшения.
 
-## Review and play before merge
+## Разработка
 
-Repository identity was verified as **`Ilyanius31/chiken-simulator`**. The feature branch is **`feat/top-down-world-v0.2`**, based on v0.1 commit **`e52501e`**, not on the empty original `main`.
-
-Every push to this branch runs **Test, preview and deploy Chicken Simulator**. After the build passes:
-
-- The **chicken-simulator-v0.2-preview** Actions artifact contains the `dist` site and **`chicken-simulator-v0.2.html`**, a self-contained downloadable preview. Open [Actions](https://github.com/Ilyanius31/chiken-simulator/actions), select the latest feature-branch run and download the artifact. Local HTML support depends on the Android browser/file handler; this is not represented as a public HTTPS preview.
-- Source screenshots and the validation report are in `docs/`. No live pre-merge URL is claimed without an actual deployment.
-
-## Publish after your review
-
-1. Review and merge the PR yourself. The agent/workflow must not merge it.
-2. If Pages is not enabled yet, open [Settings → Pages](https://github.com/Ilyanius31/chiken-simulator/settings/pages) on your phone. Under **Build and deployment → Source**, choose **GitHub Actions**. Chrome’s **Desktop site** can reveal hidden GitHub settings controls.
-3. The merge to `main` triggers type checking, tests, formatting, build, upload and the official GitHub Pages deployment. If the first deploy ran before Pages was enabled, rerun the workflow on `main`.
-4. Wait for a green **deploy** job, then use its HTTPS URL or **Settings → Pages → Visit site**.
-
-The expected address for this repository is `https://ilyanius31.github.io/chiken-simulator/`. It is an expected address, not a claim that the site is currently published. No API keys are required. The deploy job has only `pages: write` and `id-token: write`; all other jobs get only the permissions they need. Feature-branch and PR builds never overwrite the Pages site.
-
-## Develop and test
-
-Node 22.12+ and npm are required for development, not for playing. There are no runtime npm packages, remote fonts or fetched game assets.
+Для разработки нужны Node.js 22.12+ и npm. Для игры нужен только браузер.
 
 ```sh
 npm ci
@@ -70,36 +54,52 @@ npm run test:browser
 npm run build
 npm run preview:pack
 npm run preview
+npm run format:check
 ```
 
-The default path is **`/chiken-simulator/`**, matching the real repository. CI can override it with `PAGES_BASE_PATH` if the repository is renamed. All production assets use that subpath. The application has no server-side routes.
+Настоящее имя репозитория — **`Ilyanius31/chiken-simulator`**. Базовый путь Vite — **`/chiken-simulator/`**. В CI путь берётся из имени репозитория; при переименовании его можно переопределить через `PAGES_BASE_PATH`. Серверные маршруты не требуются.
 
-Playwright uses `/usr/bin/chromium` in Codex Cloud. Set `CHROMIUM_PATH` on another machine. It controls the actual game through keyboard/touch input; read-only Canvas data attributes expose position/enemy snapshots for assertions. Tests do not teleport the browser player, replace combat outcomes, or add test currency to the playthrough. A separate migration fixture intentionally supplies a v0.1 save.
+Playwright использует системный Chromium (`/usr/bin/chromium`). На другой машине задайте `CHROMIUM_PATH`. Браузерные тесты управляют настоящей игрой через клавиатуру и касания. Данные позиции на Canvas доступны только для наблюдения: тест прохождения не телепортирует игрока и не подделывает награды. Отдельный сценарий миграции загружает старое сохранение намеренно.
 
-`npm run format` formats sources; `npm run format:check` checks them. `npm run preview:pack` bundles production JS, CSS and the favicon into `artifacts/chicken-simulator-v0.2.html`. It fails on unexpected code splitting instead of silently emitting a broken preview. Generated artifacts are ignored by Git and uploaded by CI.
+`npm run format` форматирует исходники. `npm run preview:pack` после сборки создаёт единый HTML-файл в `artifacts/`. В него включены JavaScript, CSS и значок. Сценарий завершится ошибкой при неожиданном разделении JavaScript на дополнительные части, вместо создания неполного файла.
 
-## Architecture
+## Структура
 
 ```text
-src/core/       combat, AI, balance, economy, save migration, game lifecycle
-src/world/      authored map, camera, collision/navigation, interactions, simulation
-src/render/     original overhead rooster art, environment art, cached terrain/effects
-src/platform/   independent multitouch joystick/buttons, keyboard, Web Audio
-src/ui/         menu, HUD, shop, atlas, dialogue, pause/settings/results
+src/localization/  единый словарь русских текстов и тип будущих локализаций
+src/core/          бои, ИИ, баланс, экономика, сохранения и жизненный цикл
+src/world/         карта, камера, столкновения, навигация и взаимодействия
+src/render/        оригинальные персонажи, окружение, эффекты и отрисовка
+src/platform/      мультитач, клавиатура и Web Audio
+src/ui/            меню, HUD, магазин, карта, диалоги и настройки
 ```
 
-The simulation advances at 60 fixed steps per second with bounded catch-up. Movement, combat, collision, camera, navigation, interactions and economy can be tested without a browser. Rendering culls off-screen objects, caches static terrain, caps device pixel ratio at 2 and uses no external art assets. Enemies use simple state transitions and bounded grid pathfinding rather than an AI library.
+Симуляция работает с фиксированным шагом 1/60 секунды и ограничением догоняющих кадров. Логика тестируется отдельно от браузера. Рендеринг использует кэш ландшафта, отсечение объектов вне экрана и ограничение плотности пикселей до 2. Тяжёлых движков, библиотек ИИ и внешних ресурсов нет.
 
-The previous economy, upgrade categories, procedural audio, storage validation/backup design and testing tools were reused. The old camera, side-view renderer, one-dimensional collision, battle screens and two-button movement were replaced.
+Все игровые тексты находятся в `src/localization/ru.ts`, а потребители импортируют `t` из `src/localization`. Будущая английская локализация должна реализовать тот же тип `Locale`; менять игровые идентификаторы не потребуется. Строки с числами представлены функциями, склонение слова «яйцо» использует `Intl.PluralRules`. Заголовок страницы и описание подставляются Vite из того же словаря. Системные шрифты поддерживают кириллицу; для текста Canvas используется системный шрифт.
 
-### Saves
+## Сохранения
 
-`chicken-simulator:v2` stores eggs, upgrades, records, sound settings, exploration position, discovered zones, collected objects/respawn deadlines, objective progress and the Champion reward. A v0.1 save at `chicken-simulator:v1` is migrated safely; its original data is preserved. Fields are validated individually, a healthy previous v0.2 revision is backed up, and unknown newer schemas cannot be overwritten. Only the explicit confirmed reset removes both generations. When storage is unavailable, the game warns and remains playable in the current tab.
+Локализация сохраняет существующую структуру `chicken-simulator:v2` и все ключи игровых объектов. Хранятся яйца, улучшения, статистика, звук, позиция, открытые зоны, сроки восстановления гнёзд, цели и награда чемпиона.
 
-Saved positions inside changed geometry are moved to the village safely. Returning from a closed session restores position with full health; combat encounters are not serialized. Progress belongs to this browser and origin, so clearing site data or changing domain loses access to that local save. There is no account or cross-device sync.
+Старое сохранение `chicken-simulator:v1` переносится автоматически и остаётся нетронутым до явного подтверждения сброса. Поля проверяются отдельно; используется резервная копия. Неизвестная более новая версия защищена от перезаписи. При недоступном хранилище появляется русское предупреждение, а игра продолжает работать в текущей вкладке.
 
-## Phone acceptance check
+После перезапуска здоровье восстанавливается, а текущие столкновения с врагами начинаются заново. Сохранение принадлежит конкретному браузеру и адресу сайта. Очистка данных сайта удаляет его. Серверной синхронизации нет.
 
-After opening the real deployed HTTPS site, test landscape movement and simultaneous attacks with both thumbs; release/cancel touches and switch apps to check pause behavior. Talk to Pip, collect a nest, lay an egg, practice on the dummy, open a crate, defeat a Rookie and purchase an upgrade at the physical shop. Visit the forest and ring the arena bell. Reload to verify currency, upgrades, objectives and settings persist. Rotate to portrait for the guidance screen and back to resume. Listen to sounds after the first touch, then mute them.
+## Проверка и публикация с Android
 
-Browser emulation does not establish physical Android frame rate, audio behavior or thumb comfort. Those remain device checks. v0.2 intentionally has one authored world, no multiplayer, inventory/crafting, backend, monetization or service worker. Next work should prioritize phone playtest feedback, boss balance and save export/import before adding larger systems.
+Изменения публикуются через Pull Request. Агент не объединяет PR и не отправляет изменения непосредственно в `main`.
+
+1. Откройте PR, изучите изменения, скриншоты и результаты проверок.
+2. Для предварительной проверки откройте [GitHub Actions](https://github.com/Ilyanius31/chiken-simulator/actions) и скачайте артефакт последней сборки. Он содержит обычный статический сайт и единый HTML. Открытие локального HTML зависит от браузера и обработчика файлов Android; это не публичная HTTPS-версия.
+3. Перед публикацией выберите [Settings → Pages](https://github.com/Ilyanius31/chiken-simulator/settings/pages) → **Build and deployment → Source → GitHub Actions**. В Chrome при необходимости включите «Версия для ПК».
+4. Объедините готовый PR самостоятельно. После merge workflow проверит TypeScript, тесты и форматирование, соберёт сайт и опубликует его официальным механизмом GitHub Pages.
+5. Дождитесь успешного задания `deploy` и используйте его ссылку или кнопку **Visit site**. Если Pages включили после неудачного запуска, повторите workflow для `main`.
+
+Ожидаемый адрес: `https://ilyanius31.github.io/chiken-simulator/`. Его наличие в документации не означает, что публикация уже проверена. Предварительные сборки веток не заменяют основной сайт. Секретные ключи для штатного деплоя не нужны.
+
+## Проверка на настоящем телефоне
+
+Проверьте движение и атаки двумя пальцами, отмену касаний, паузу при переключении приложений и подсказку поворота. Прочитайте диалоги, откройте магазин и карту: русский текст не должен обрезаться. Соберите гнездо, снесите яйцо, разбейте ящик, победите новичка, купите улучшение, посетите лес и арену. Перезагрузите страницу и проверьте сохранение. Включите и выключите звук, отмените сброс прогресса.
+
+Эмуляция Chromium не заменяет проверку удобства больших пальцев, звука и производительности на физическом Android. В игре пока один компактный мир, без мультиплеера, сложного инвентаря, крафта и облачных сохранений. Сначала следует завершить согласованный сюжет v0.3 и провести телефонное тестирование.

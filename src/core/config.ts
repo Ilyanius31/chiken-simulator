@@ -1,8 +1,9 @@
+import { t } from '../localization';
 export type AttackKind = 'peck' | 'wing' | 'kick';
 export type UpgradeKind = 'attack' | 'health' | 'stamina' | 'production';
 export const ATTACKS = {
   peck: {
-    name: 'Peck',
+    name: t.attacks.peck.name,
     damage: 9,
     cost: 9,
     cooldown: 0.42,
@@ -14,7 +15,7 @@ export const ATTACKS = {
     knockback: 16,
   },
   wing: {
-    name: 'Wing slap',
+    name: t.attacks.wing.name,
     damage: 17,
     cost: 19,
     cooldown: 0.95,
@@ -26,7 +27,7 @@ export const ATTACKS = {
     knockback: 65,
   },
   kick: {
-    name: 'Power kick',
+    name: t.attacks.kick.name,
     damage: 32,
     cost: 31,
     cooldown: 1.95,
@@ -55,26 +56,26 @@ export const UPGRADES: Record<
   { title: string; description: string; icon: string; baseCost: number }
 > = {
   attack: {
-    title: 'Attack power',
-    description: '+10% damage. Add some bite to your beak.',
+    title: t.upgrades.attack.title,
+    description: t.upgrades.attack.description,
     icon: '✦',
     baseCost: 8,
   },
   health: {
-    title: 'Max health',
-    description: '+25 maximum HP. More fluff, more fight.',
+    title: t.upgrades.health.title,
+    description: t.upgrades.health.description,
     icon: '♥',
     baseCost: 8,
   },
   stamina: {
-    title: 'Stamina',
-    description: '+15 stamina. Keep those wings swinging.',
+    title: t.upgrades.stamina.title,
+    description: t.upgrades.stamina.description,
     icon: 'ϟ',
     baseCost: 8,
   },
   production: {
-    title: 'Egg production',
-    description: '4 seconds faster. Biology is a suggestion.',
+    title: t.upgrades.production.title,
+    description: t.upgrades.production.description,
     icon: '◒',
     baseCost: 10,
   },
@@ -82,7 +83,7 @@ export const UPGRADES: Record<
 export type EnemyKind = 'rookie' | 'speedy' | 'bramble' | 'champion';
 export const ENEMIES = {
   rookie: {
-    name: 'Rookie Rooster',
+    name: t.enemies.rookie,
     hp: 48,
     speed: 123,
     power: 0.7,
@@ -93,7 +94,7 @@ export const ENEMIES = {
     detection: 300,
   },
   speedy: {
-    name: 'Speedy Rooster',
+    name: t.enemies.speedy,
     hp: 42,
     speed: 205,
     power: 0.75,
@@ -104,7 +105,7 @@ export const ENEMIES = {
     detection: 320,
   },
   bramble: {
-    name: 'Bramble Rooster',
+    name: t.enemies.bramble,
     hp: 82,
     speed: 135,
     power: 1.15,
@@ -115,7 +116,7 @@ export const ENEMIES = {
     detection: 290,
   },
   champion: {
-    name: 'Champion Rooster',
+    name: t.enemies.champion,
     hp: 260,
     speed: 160,
     power: 1.3,
